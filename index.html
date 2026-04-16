@@ -77,7 +77,7 @@
       <div class="toggle-row">
         <input type="checkbox" id="tog-vs" checked>
         <div class="toggle-swatch" style="background:rgba(245,168,0,0.25);border:1.5px dashed #F5A800;border-radius:2px"></div>
-        <label for="tog-vs">Camera Viewsheds (terrain) ▾</label>
+        <label for="tog-vs">Camera View Cones (60°) ▾</label>
         <span class="feat-count">8</span>
       </div>
       <div id="vs-per-cam" style="padding-left:18px;display:block">
@@ -133,7 +133,7 @@
       </div>
       <div class="legend-item">
         <div class="legend-swatch" style="background:rgba(245,168,0,0.15);border:1.5px dashed #F5A800;border-radius:2px"></div>
-        Camera viewshed (terrain-limited)
+        Camera view cone (60° FOV)
       </div>
 
       <p style="font-size:11px;color:#888;margin:10px 0 6px;font-style:italic">Sensor clusters</p>
@@ -337,50 +337,24 @@ map.on('load', () => {
     container.querySelectorAll('input').forEach(cb => { cb.checked = this.checked; });
   });
 
-  // Viewshed polygon click — match any per-camera fill layer
+  // Viewshed cone click — match any per-camera fill layer
   VS_CAM_NAMES.forEach(name => {
     const fillId = `vs-${camSlug(name)}-fill`;
     map.on('click', fillId, e => {
       const p = e.features[0].properties;
       const az = p.facing_az !== undefined ? `${p.facing_az}°` : '—';
-      popup.setLngLat(e.lngLat).setHTML(fmtPopup(p.name + ' — Viewshed', [
-        ['FOV', `${p.fov_deg}° arc facing ${az}`],
-        ['Observer height', `${p.obs_height_m} m above terrain`],
-        ['DEM source', p.dem_source],
-        ['Method', 'gdal_viewshed, earth curvature + refraction corrected'],
-        ['Note', p.note]
+      popup.setLngLat(e.lngLat).setHTML(fmtPopup(p.name + ' — View Cone', [
+        ['FOV', `60° arc, facing ${az} from N`],
+        ['Range', `${p.coverage_km} km`],
+        ['Corridor', p.corridor],
+        ['Platform', 'IQ FireWatch panoramic PTZ'],
       ])).addTo(map);
     });
     map.on('mouseenter', fillId, () => { map.getCanvas().style.cursor = 'pointer'; });
     map.on('mouseleave', fillId, () => { map.getCanvas().style.cursor = ''; });
   });
 
-  // 7. River Valley Recreation — added LAST so it sits on top of everything
-  console.log('[map] adding recreation source');
-  map.addSource('rec-src', { type: 'geojson', data: 'data/recreation.geojson' });
-  console.log('[map] adding recreation layer');
-  safeAdd({ id: 'recreation', type: 'circle', source: 'rec-src',
-    paint: {
-      'circle-radius': 9,
-      'circle-color': '#00BCD4',
-      'circle-stroke-color': '#fff',
-      'circle-stroke-width': 2,
-      'circle-opacity': 1
-    }
-  });
-  safeAdd({ id: 'recreation-labels', type: 'symbol', source: 'rec-src',
-    layout: {
-      'text-field': ['get', 'name'],
-      'text-font': ['Noto Sans Regular', 'Noto Sans Bold'],
-      'text-size': 10, 'text-anchor': 'top', 'text-offset': [0, 1.1],
-      'text-max-width': 12,
-      'text-optional': true
-    },
-    paint: { 'text-color': '#006064', 'text-halo-color': '#fff', 'text-halo-width': 2 }
-  });
-  console.log('[map] recreation done, layer exists:', !!map.getLayer('recreation'));
-
-  // 8. Gas/particulate sensor nodes (added before cameras so cameras render on top)
+  // 7. Gas/particulate sensor nodes
   map.addSource('sensors', { type: 'geojson', data: 'data/sensors.geojson' });
   safeAdd({ id: 'sensors', type: 'circle', source: 'sensors',
     paint: {
@@ -394,7 +368,7 @@ map.on('load', () => {
     }
   });
 
-  // 9. PTZ camera markers — on top of everything
+  // 8. PTZ camera markers
   map.addSource('ptz-cams', { type: 'geojson', data: 'data/cameras.geojson' });
   safeAdd({ id: 'cam-bg', type: 'circle', source: 'ptz-cams',
     paint: { 'circle-radius': 16, 'circle-color': '#fff', 'circle-opacity': 0.9 }
@@ -417,6 +391,46 @@ map.on('load', () => {
     paint: { 'text-color': '#5a3800', 'text-halo-color': '#fff', 'text-halo-width': 2 }
   });
 
+  // 9. River Valley Recreation — inline fetch so data arrives as object (not URL)
+  //    Added after cameras so it renders on top and is always visible
+  fetch('data/recreation.geojson')
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(recData => {
+      map.addSource('rec-src', { type: 'geojson', data: recData });
+      const initVis = document.getElementById('tog-rec').checked ? 'visible' : 'none';
+      safeAdd({ id: 'recreation', type: 'circle', source: 'rec-src',
+        layout: { visibility: initVis },
+        paint: {
+          'circle-radius': 8,
+          'circle-color': '#00838F',
+          'circle-stroke-color': '#fff',
+          'circle-stroke-width': 2,
+          'circle-opacity': 1
+        }
+      });
+      safeAdd({ id: 'recreation-labels', type: 'symbol', source: 'rec-src',
+        layout: {
+          visibility: initVis,
+          'text-field': ['get', 'name'],
+          'text-font': ['Noto Sans Regular', 'Noto Sans Bold'],
+          'text-size': 10, 'text-anchor': 'top', 'text-offset': [0, 1.1],
+          'text-max-width': 12,
+          'text-optional': true
+        },
+        paint: { 'text-color': '#004d52', 'text-halo-color': '#fff', 'text-halo-width': 2 }
+      });
+      map.on('click', 'recreation', e => {
+        const p = e.features[0].properties;
+        const rows = [['Type', p.type], ['Address', p.address || '—']];
+        if (p.url) rows.push(['Info', `<a href="${p.url}" target="_blank" style="color:#00838F">edmonton.ca ↗</a>`]);
+        popup.setLngLat(e.lngLat).setHTML(fmtPopup(p.name, rows)).addTo(map);
+      });
+      map.on('mouseenter', 'recreation', () => { map.getCanvas().style.cursor = 'pointer'; });
+      map.on('mouseleave', 'recreation', () => { map.getCanvas().style.cursor = ''; });
+      console.log('[map] recreation loaded:', recData.features.length, 'features');
+    })
+    .catch(err => console.error('[map] recreation fetch failed:', err));
+
   // ── Toggle bindings (simple layers) ─────────────────────────────────────────
   const togMap = {
     'tog-wf':  ['wf-heat'],
@@ -424,16 +438,15 @@ map.on('load', () => {
     'tog-optc':['optC-rings-fill','optC-rings-line','optC-stations','optC-labels'],
     'tog-cam': ['cam-bg','cam-dot','cam-label'],
     'tog-sen': ['sensors'],
-    'tog-rec': ['recreation','recreation-labels']
+    'tog-rec': ['recreation','recreation-labels']   // layers exist once fetch resolves
   };
-  // Note: tog-vs is handled by buildVsLayers() above
 
   for (const [cbId, layerIds] of Object.entries(togMap)) {
     document.getElementById(cbId).addEventListener('change', function () {
       const vis = this.checked ? 'visible' : 'none';
       layerIds.forEach(lid => {
         try { map.setLayoutProperty(lid, 'visibility', vis); }
-        catch(e) { console.warn(`setLayoutProperty failed for ${lid}:`, e.message); }
+        catch(e) { /* layer not yet loaded — visibility set at init above */ }
       });
     });
   }
@@ -472,11 +485,9 @@ map.on('load', () => {
       ['Mount', p.mount],
       ['Range', `${p.coverage_km} km`],
       ['Corridor', p.corridor],
-      ['Terrain note', 'Escarpment shadow within ~300 m of rim — floor sensors complement this gap']
+      ['Platform', 'IQ FireWatch panoramic PTZ']
     ])).addTo(map);
   });
-
-  // Viewshed click handlers registered above in VS_CAM_NAMES.forEach loop
 
   map.on('click', 'sensors', e => {
     const p = e.features[0].properties;
@@ -490,14 +501,7 @@ map.on('load', () => {
     ])).addTo(map);
   });
 
-  map.on('click', 'recreation', e => {
-    const p = e.features[0].properties;
-    const rows = [['Type', p.type], ['Address', p.address || '—']];
-    if (p.url) rows.push(['Info', `<a href="${p.url}" target="_blank" style="color:#00838F">edmonton.ca ↗</a>`]);
-    popup.setLngLat(e.lngLat).setHTML(fmtPopup(p.name, rows)).addTo(map);
-  });
-
-  const clickable = ['existing6-stations','optC-stations','cam-dot','sensors','recreation'];
+  const clickable = ['existing6-stations','optC-stations','cam-dot','sensors'];
   clickable.forEach(lid => {
     map.on('mouseenter', lid, () => { map.getCanvas().style.cursor = 'pointer'; });
     map.on('mouseleave', lid, () => { map.getCanvas().style.cursor = ''; });
