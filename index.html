@@ -275,32 +275,8 @@ map.on('load', () => {
     paint: { 'text-color': '#004400', 'text-halo-color': '#fff', 'text-halo-width': 1.5 }
   });
 
-  // 6. Camera viewsheds — per-camera layers, inserted BELOW recreation/sensors/cameras
-  // Camera names are hardcoded (same as cameras.geojson) so layers are added synchronously.
-  // All safeAdd calls use beforeId:'recreation' so viewshed fills stay under point layers.
+  // 6. Camera viewsheds — per-camera fill/line layers
   map.addSource('cam-viewsheds', { type: 'geojson', data: 'data/camera_viewsheds.geojson' });
-
-  // Must add recreation source here so beforeId works — layers added after source registration
-  map.addSource('recreation', { type: 'geojson', data: 'data/recreation.geojson' });
-  safeAdd({ id: 'recreation', type: 'circle', source: 'recreation',
-    paint: {
-      'circle-radius': 7,
-      'circle-color': '#00838F',
-      'circle-stroke-color': '#fff',
-      'circle-stroke-width': 1.5,
-      'circle-opacity': 0.85
-    }
-  });
-  safeAdd({ id: 'recreation-labels', type: 'symbol', source: 'recreation',
-    layout: {
-      'text-field': ['get', 'name'],
-      'text-font': ['Noto Sans Regular', 'Noto Sans Bold'],
-      'text-size': 10, 'text-anchor': 'top', 'text-offset': [0, 1.0],
-      'text-max-width': 12,
-      'text-optional': true
-    },
-    paint: { 'text-color': '#004D52', 'text-halo-color': '#fff', 'text-halo-width': 1.5 }
-  });
 
   function camSlug(name) { return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g,''); }
   const VS_CAM_NAMES = [
@@ -316,16 +292,15 @@ map.on('load', () => {
     const fillId = `vs-${slug}-fill`;
     const lineId = `vs-${slug}-line`;
 
-    // Insert BEFORE 'recreation' so viewshed fills are below point features
     safeAdd({ id: fillId, type: 'fill', source: 'cam-viewsheds',
       filter: ['==', ['get', 'name'], name],
       paint: { 'fill-color': '#F5A800', 'fill-opacity': 0.08 }
-    }, 'recreation');
+    });
     safeAdd({ id: lineId, type: 'line', source: 'cam-viewsheds',
       filter: ['==', ['get', 'name'], name],
       paint: { 'line-color': '#F5A800', 'line-opacity': 0.55,
                'line-width': 1.2, 'line-dasharray': [5, 3] }
-    }, 'recreation');
+    });
 
     vsLayerIds.push(fillId, lineId);
 
@@ -380,7 +355,30 @@ map.on('load', () => {
     map.on('mouseleave', fillId, () => { map.getCanvas().style.cursor = ''; });
   });
 
-  // Recreation source + layers already added above (before viewshed fills) — nothing here.
+  // 7. River Valley Recreation — added LAST so it sits on top of everything
+  console.log('[map] adding recreation source');
+  map.addSource('rec-src', { type: 'geojson', data: 'data/recreation.geojson' });
+  console.log('[map] adding recreation layer');
+  safeAdd({ id: 'recreation', type: 'circle', source: 'rec-src',
+    paint: {
+      'circle-radius': 9,
+      'circle-color': '#00BCD4',
+      'circle-stroke-color': '#fff',
+      'circle-stroke-width': 2,
+      'circle-opacity': 1
+    }
+  });
+  safeAdd({ id: 'recreation-labels', type: 'symbol', source: 'rec-src',
+    layout: {
+      'text-field': ['get', 'name'],
+      'text-font': ['Noto Sans Regular', 'Noto Sans Bold'],
+      'text-size': 10, 'text-anchor': 'top', 'text-offset': [0, 1.1],
+      'text-max-width': 12,
+      'text-optional': true
+    },
+    paint: { 'text-color': '#006064', 'text-halo-color': '#fff', 'text-halo-width': 2 }
+  });
+  console.log('[map] recreation done, layer exists:', !!map.getLayer('recreation'));
 
   // 8. Gas/particulate sensor nodes (added before cameras so cameras render on top)
   map.addSource('sensors', { type: 'geojson', data: 'data/sensors.geojson' });
