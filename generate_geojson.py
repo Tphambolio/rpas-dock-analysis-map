@@ -4,6 +4,7 @@ Generate all GeoJSON data files for the GitHub Pages map site.
 Run from the repo root: python generate_geojson.py
 """
 import json, math, os
+import numpy as np
 import geopandas as gpd
 
 SRC = '/home/rpas/Downloads'
@@ -14,13 +15,17 @@ os.makedirs(OUT, exist_ok=True)
 with open(f'{SRC}/hm_WF.json') as f:
     wf = json.load(f)
 
+wf_pts = [(r['lon'], r['lat']) for r in wf if r.get('lat') and r.get('lon')]
+wf_lons = np.array([p[0] for p in wf_pts])
+wf_lats = np.array([p[1] for p in wf_pts])
+
 fc = {
     'type': 'FeatureCollection',
     'features': [
         {'type': 'Feature',
-         'geometry': {'type': 'Point', 'coordinates': [r['lon'], r['lat']]},
+         'geometry': {'type': 'Point', 'coordinates': list(p)},
          'properties': {}}
-        for r in wf if r.get('lat') and r.get('lon')
+        for p in wf_pts
     ]
 }
 with open(f'{OUT}/wf_incidents.geojson', 'w') as f:
@@ -30,7 +35,6 @@ print(f'wf_incidents.geojson: {len(fc["features"])} points')
 # ── 2. GeoPackage → GeoJSON helper ──────────────────────────────────────────
 def gpkg_to_geojson(gpkg_path, layer, out_name):
     gdf = gpd.read_file(gpkg_path, layer=layer).to_crs('EPSG:4326')
-    # Simplify ring geometries slightly for web (reduces file size)
     if gdf.geometry.geom_type.iloc[0] in ('Polygon', 'MultiPolygon'):
         gdf['geometry'] = gdf.geometry.simplify(0.0001, preserve_topology=True)
     path = f'{OUT}/{out_name}'
@@ -42,7 +46,14 @@ gpkg_to_geojson(f'{SRC}/existing6_rings.gpkg',    'existing6_rings',    'existin
 gpkg_to_geojson(f'{SRC}/optC_stations.gpkg',      'optC_stations',      'optC_stations.geojson')
 gpkg_to_geojson(f'{SRC}/optC_rings.gpkg',         'optC_rings',         'optC_rings.geojson')
 
-# ── 3. PTZ Camera stations (8 sites) ────────────────────────────────────────
+# ── 3. PTZ Camera stations + viewsheds ──────────────────────────────────────
+# Viewshed circles are theoretical max-range envelopes.
+# Actual coverage in Edmonton's river valley is constrained by the escarpment:
+# cameras on the rim cannot see the ravine floor until smoke rises above the
+# valley wall (~20-40 m). Floor-level gas sensors provide complementary
+# sub-escarpment detection. A rigorous viewshed would require the Edmonton
+# LiDAR DEM processed through r.los or equivalent.
+
 CAMERAS = [
     {'name': 'Walterdale Hill',       'lat': 53.5268, 'lon': -113.4915,
      'mount': 'Telecom tower / utility structure',
@@ -83,167 +94,174 @@ with open(f'{OUT}/cameras.geojson', 'w') as f:
     json.dump(cam_fc, f, indent=2)
 print(f'cameras.geojson: {len(cam_fc["features"])} stations')
 
-# ── 4. Gas/particulate sensor nodes ─────────────────────────────────────────
-# Generate points along ravine corridor polylines at ~700m spacing.
-# Points alternate floor / rim within each corridor.
+# Camera viewshed polygons — approximate circles at coverage_km radius
+# Terrain note: in Edmonton's river valley (30-50m escarpment), cameras mounted
+# on the rim have line-of-sight blocked into the ravine bottom. These circles
+# represent the theoretical optical detection radius on open terrain. Actual
+# ravine-floor visibility requires smoke to rise above the escarpment rim.
+LAT_M = 111_000.0  # m per degree latitude
 
-def interpolate_corridor(waypoints, spacing_deg=0.006):
-    """Return list of [lon, lat] at ~spacing_deg intervals along polyline."""
-    pts = []
-    for i in range(len(waypoints) - 1):
-        lat1, lon1 = waypoints[i]
-        lat2, lon2 = waypoints[i+1]
-        seg_len = math.hypot(lat2-lat1, lon2-lon1)
-        n = max(1, round(seg_len / spacing_deg))
-        for j in range(n):
-            t = j / n
-            pts.append([lon1 + t*(lon2-lon1), lat1 + t*(lat2-lat1)])
-    pts.append([waypoints[-1][1], waypoints[-1][0]])
-    return pts
+def circle_polygon(lon, lat, radius_m, n=72):
+    """Approximate circle as polygon; returns GeoJSON Polygon geometry."""
+    lon_m = LAT_M * math.cos(math.radians(lat))
+    coords = []
+    for i in range(n + 1):
+        a = 2 * math.pi * i / n
+        coords.append([
+            round(lon + radius_m / lon_m * math.sin(a), 5),
+            round(lat + radius_m / LAT_M * math.cos(a), 5)
+        ])
+    return {'type': 'Polygon', 'coordinates': [coords]}
 
-CORRIDORS = [
-    {
-        # River enters from west, curves east then northeast through downtown
-        'name': 'North Saskatchewan Main Valley',
-        'floor': [
-            (53.5450, -113.6260),  # W entrance near Quesnell Bridge
-            (53.5380, -113.5980),  # Laurier Park
-            (53.5340, -113.5690),  # Groat Bridge
-            (53.5300, -113.5440),  # McKinnon Ravine junction
-            (53.5270, -113.5240),  # High Level Bridge
-            (53.5220, -113.4970),  # Cloverdale / Riverdale
-            (53.5270, -113.4700),  # Dawson Park — river curves N
-            (53.5400, -113.4430),  # Gold Bar
-            (53.5560, -113.4130),  # Beverly
-            (53.5690, -113.3900),  # NE exit
-        ],
-        # South escarpment rim (Saskatchewan Drive / Connors Road ridge)
-        'rim': [
-            (53.5290, -113.6230),  # Whitemud/Wedgewood ridge top
-            (53.5240, -113.5940),  # Laurier Heights rim
-            (53.5210, -113.5660),  # Groat top
-            (53.5190, -113.5400),  # 99 Ave escarpment
-            (53.5180, -113.5200),  # Saskatchewan Drive
-            (53.5150, -113.4950),  # Connors Hill
-            (53.5190, -113.4680),  # Rundle rim
-            (53.5300, -113.4400),  # Gold Bar rim
-            (53.5440, -113.4130),  # Beverly rim
-            (53.5570, -113.3940),  # NE rim
-        ],
-    },
-    {
-        # N-S ravine through Mill Creek Park, south-central Edmonton
-        'name': 'Mill Creek Ravine',
-        'floor': [
-            (53.4770, -113.4995),  # S end near 34 Ave
-            (53.4830, -113.4993),
-            (53.4880, -113.4992),
-            (53.4940, -113.4992),
-            (53.5000, -113.4991),
-            (53.5065, -113.4991),
-            (53.5140, -113.4990),  # N end meets main valley near 98 Ave
-        ],
-        # East escarpment rim
-        'rim': [
-            (53.4770, -113.4890),
-            (53.4830, -113.4893),
-            (53.4880, -113.4895),
-            (53.4940, -113.4895),
-            (53.5000, -113.4894),
-            (53.5065, -113.4893),
-            (53.5140, -113.4892),
-        ],
-    },
-    {
-        # Flows SW→NE from Terwillegar toward Mill Creek confluence
-        'name': 'Whitemud Creek',
-        'floor': [
-            (53.4320, -113.6110),  # SW near Terwillegar S
-            (53.4380, -113.5960),  # Wedgewood
-            (53.4430, -113.5800),
-            (53.4490, -113.5630),
-            (53.4560, -113.5460),  # Near Whitemud Drive
-            (53.4620, -113.5290),
-            (53.4680, -113.5140),
-            (53.4740, -113.5040),  # Near valley confluence
-        ],
-        # NW bank rim
-        'rim': [
-            (53.4340, -113.6200),
-            (53.4400, -113.6050),
-            (53.4460, -113.5890),
-            (53.4520, -113.5720),
-            (53.4570, -113.5550),
-            (53.4630, -113.5380),
-            (53.4690, -113.5230),
-            (53.4750, -113.5120),
-        ],
-    },
-    {
-        # Ravine system NE of the main valley — Rundle/Beverly ravines
-        'name': 'Beverly Ravines',
-        'floor': [
-            (53.5530, -113.4330),  # Gold Bar ravine entrance
-            (53.5590, -113.4160),
-            (53.5650, -113.4000),
-            (53.5710, -113.3840),
-            (53.5760, -113.3680),  # Beverly NE
-        ],
-        # Upper escarpment
-        'rim': [
-            (53.5460, -113.4290),
-            (53.5520, -113.4120),
-            (53.5580, -113.3960),
-            (53.5640, -113.3800),
-            (53.5700, -113.3650),
-        ],
-    },
-    {
-        # River valley floor SW — along Terwillegar / Oleskiw bend
-        'name': 'Terwillegar / Oleskiw',
-        'floor': [
-            (53.4510, -113.6380),  # Terwillegar park W
-            (53.4450, -113.6260),
-            (53.4390, -113.6150),  # Oleskiw area
-            (53.4330, -113.6080),
-            (53.4270, -113.6040),  # S tip of river bend
-        ],
-        # SW escarpment rim
-        'rim': [
-            (53.4500, -113.6480),
-            (53.4440, -113.6360),
-            (53.4380, -113.6250),
-            (53.4320, -113.6180),
-            (53.4260, -113.6140),
-        ],
-    },
+vs_fc = {
+    'type': 'FeatureCollection',
+    'features': [
+        {'type': 'Feature',
+         'geometry': circle_polygon(c['lon'], c['lat'], c['coverage_km'] * 1000),
+         'properties': {
+             'name': c['name'],
+             'coverage_km': c['coverage_km'],
+             'note': 'Theoretical max range. Valley floor visibility reduced by escarpment shadow until smoke rises >20-40 m above ravine rim.'
+         }}
+        for c in CAMERAS
+    ]
+}
+with open(f'{OUT}/camera_viewsheds.geojson', 'w') as f:
+    json.dump(vs_fc, f, separators=(',', ':'))
+print(f'camera_viewsheds.geojson: {len(vs_fc["features"])} viewsheds')
+
+# ── 4. Gas/particulate sensor nodes — density-weighted triangulated clusters ─
+#
+# DESIGN BASIS (Ucinski 2004, Nehorai 1994, IEEE WSN wildfire literature):
+#
+#  Linear arrays provide only 1-D gradient info → cannot triangulate a point
+#  source under variable wind. Point-source localization requires ≥3 non-
+#  collinear sensors. Solution: equilateral TRIANGLE triads placed within the
+#  actual wildfire ignition-risk zone.
+#
+# ALGORITHM:
+#  1. Kernel density estimate of WF incident locations → ignition probability
+#     surface (uses only historical fire data — no manual corridor drawing)
+#  2. Proximity filter: only cells within ~1 km of at least one WF incident
+#     are eligible (clips naturally to the valley / ravine system without a
+#     hard polygon boundary)
+#  3. Poisson-disc weighted sampling → cluster centroids at ≥1 km separation
+#  4. Equilateral triangle at each centroid (~280 m radius ≈ 485 m side):
+#       Vertex A: 330° (NNW) — upwind reference, Edmonton prevailing NW flow
+#       Vertex B:  90° (E)   — primary downwind detector for NW plumes
+#       Vertex C: 210° (SSW) — Chinook (SW) plume + crosswind triangulation
+#
+# Physical basis: the NNW/E/SSW triangle covers the two dominant Edmonton
+# wind quadrants (NW Arctic outflow, SW Chinook) while maintaining the
+# non-collinearity required for 2-D source triangulation. Floor-level nodes
+# detect CO/PM2.5 co-spike before smoke exits the ravine; rim-level nodes
+# cross-validate and provide gradient data for source estimation.
+
+# ── 4a. WF density grid ─────────────────────────────────────────────────────
+LON_MIN, LON_MAX = -113.650, -113.370
+LAT_MIN, LAT_MAX =  53.415,   53.605
+GRID_RES = 0.005          # ~400 m grid cells
+
+lon_c = np.arange(LON_MIN + GRID_RES/2, LON_MAX, GRID_RES)
+lat_c = np.arange(LAT_MIN + GRID_RES/2, LAT_MAX, GRID_RES)
+GLON, GLAT = np.meshgrid(lon_c, lat_c)      # (nlat, nlon)
+
+# Count WF incidents within ~1.1 km of each cell centre
+KDE_R = 0.012   # degrees ≈ 1.1 km at 53.5°N (lon-corrected: ~720 m E-W, 1.33 km N-S)
+dists = np.hypot(
+    GLON[np.newaxis] - wf_lons[:, np.newaxis, np.newaxis],
+    GLAT[np.newaxis] - wf_lats[:, np.newaxis, np.newaxis]
+)                                             # (n_wf, nlat, nlon)
+density = (dists < KDE_R).sum(axis=0).astype(float)
+
+# Light 3×3 box smoothing to spread density slightly across cell boundaries
+pad = np.pad(density, 1, mode='edge')
+smooth = sum(pad[di:di+density.shape[0], dj:dj+density.shape[1]]
+             for di in range(3) for dj in range(3)) / 9.0
+
+# Proximity filter: cluster centroid must be within ~1.1 km of a WF incident
+# (dists already computed; check per-cell minimum)
+min_wf_dist = dists.min(axis=0)              # (nlat, nlon) minimum dist to any WF pt
+
+# ── 4b. Poisson-disc weighted sampling ──────────────────────────────────────
+DENSITY_THRESH  = smooth.max() * 0.12  # top 88% of density
+PROXIMITY_THRESH = 0.013               # ≤ ~1.1 km from a WF incident
+MIN_SEP = 0.012                        # ≥ ~1 km between cluster centres
+N_CLUSTERS = 28
+SEED = 42
+
+flat = smooth.ravel()
+valid_mask = (flat > DENSITY_THRESH) & (min_wf_dist.ravel() < PROXIMITY_THRESH)
+valid_idx = np.where(valid_mask)[0]
+if len(valid_idx) < 5:           # fallback: relax proximity
+    valid_idx = np.where(flat > DENSITY_THRESH)[0]
+
+weights = flat[valid_idx]
+weights /= weights.sum()
+
+rng = np.random.default_rng(SEED)
+clusters = []
+
+for _ in range(200_000):
+    if len(clusters) >= N_CLUSTERS:
+        break
+    pick = rng.choice(len(valid_idx), p=weights)
+    fi = valid_idx[pick]
+    row, col = divmod(fi, len(lon_c))
+    lon = float(lon_c[col]) + rng.uniform(-GRID_RES/2, GRID_RES/2)
+    lat = float(lat_c[row]) + rng.uniform(-GRID_RES/2, GRID_RES/2)
+    if clusters and min(math.hypot(lon-cx, lat-cy) for cx, cy in clusters) < MIN_SEP:
+        continue
+    clusters.append((lon, lat))
+
+print(f'  sensor cluster centroids: {len(clusters)}')
+
+# ── 4c. Equilateral triangle triads ─────────────────────────────────────────
+# Triangle radius ~280 m from centroid → side ≈ 485 m
+# Orientation tuned to Edmonton wind climatology:
+#   NNW vertex (330°): upwind reference for prevailing NW/W flow
+#   E   vertex ( 90°): primary detector — NW plume goes eastward
+#   SSW vertex (210°): catches SW Chinook plume + provides E-W crosswind info
+TR_M = 280                                    # m from centroid to vertex
+TR_LAT = TR_M / LAT_M
+TR_LON = TR_M / (LAT_M * math.cos(math.radians(53.5)))
+
+VERTICES = [
+    (330, 'upwind',   'NNW — upwind reference (prevailing NW flow)'),
+    ( 90, 'downwind', 'E   — primary downwind detector (NW plume)'),
+    (210, 'downwind', 'SSW — Chinook / crosswind detector'),
 ]
 
 sensor_features = []
 node_id = 1
-for corridor in CORRIDORS:
-    for placement, waypoints in [('floor', corridor['floor']), ('rim', corridor['rim'])]:
-        pts = interpolate_corridor(waypoints, spacing_deg=0.006)
-        for lon, lat in pts:
-            sensor_features.append({
-                'type': 'Feature',
-                'geometry': {'type': 'Point', 'coordinates': [round(lon, 5), round(lat, 5)]},
-                'properties': {
-                    'id': f'SN{node_id:03d}',
-                    'corridor': corridor['name'],
-                    'placement': placement,
-                    'detects': 'CO, PM2.5, PM10, H₂, Temp, RH',
-                    'comms': 'LoRaWAN mesh',
-                    'power': 'Solar + LiFePO₄',
-                    'alert_latency_min': 5,
-                    'platform': 'N5-class sensor node',
-                }
-            })
-            node_id += 1
+
+for ci, (clon, clat) in enumerate(clusters):
+    cid = f'C{ci+1:02d}'
+    for angle_deg, placement, role in VERTICES:
+        a = math.radians(angle_deg)
+        sensor_features.append({
+            'type': 'Feature',
+            'geometry': {'type': 'Point', 'coordinates': [
+                round(clon + TR_LON * math.sin(a), 5),
+                round(clat + TR_LAT * math.cos(a), 5)
+            ]},
+            'properties': {
+                'id':               f'SN{node_id:03d}',
+                'cluster':          cid,
+                'placement':        placement,
+                'role':             role,
+                'detects':          'CO, PM2.5, PM10, H\u2082, Temp, RH',
+                'comms':            'LoRaWAN mesh',
+                'power':            'Solar + LiFePO\u2084',
+                'alert_latency_min': 5,
+                'platform':         'N5-class sensor node',
+            }
+        })
+        node_id += 1
 
 sensor_fc = {'type': 'FeatureCollection', 'features': sensor_features}
 with open(f'{OUT}/sensors.geojson', 'w') as f:
     json.dump(sensor_fc, f, separators=(',', ':'))
-print(f'sensors.geojson: {len(sensor_features)} nodes')
+print(f'sensors.geojson: {len(sensor_features)} nodes ({len(clusters)} clusters × 3 vertices)')
 
 print('\nAll GeoJSON files written to', OUT)

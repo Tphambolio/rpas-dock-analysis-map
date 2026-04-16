@@ -8,7 +8,6 @@
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css">
   <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
   <style>
-    /* Layer-count badge */
     .feat-count {
       font-size: 10px;
       color: rgba(255,255,255,0.5);
@@ -41,7 +40,6 @@
   </div>
   <div id="sidebar-body">
 
-    <!-- Demand -->
     <div class="sidebar-section">
       <div class="sidebar-section-title">Demand</div>
       <div class="toggle-row">
@@ -52,7 +50,6 @@
       </div>
     </div>
 
-    <!-- Dock Networks -->
     <div class="sidebar-section">
       <div class="sidebar-section-title">Drone Dock Networks</div>
       <div class="toggle-row">
@@ -69,24 +66,22 @@
       </div>
     </div>
 
-    <!-- Detection -->
     <div class="sidebar-section">
       <div class="sidebar-section-title">Early Detection Network</div>
       <div class="toggle-row">
         <input type="checkbox" id="tog-cam" checked>
         <div class="toggle-swatch circle" style="background:#F5A800"></div>
-        <label for="tog-cam">PTZ Camera Stations</label>
+        <label for="tog-cam">PTZ Cameras + Viewsheds</label>
         <span class="feat-count">8</span>
       </div>
       <div class="toggle-row">
         <input type="checkbox" id="tog-sen" checked>
         <div class="toggle-swatch circle" style="background:#E65100"></div>
         <label for="tog-sen">Gas / Particulate Sensors</label>
-        <span class="feat-count">156</span>
+        <span class="feat-count">84</span>
       </div>
     </div>
 
-    <!-- Legend -->
     <div class="sidebar-section">
       <div class="sidebar-section-title">Legend</div>
 
@@ -118,18 +113,18 @@
         PTZ camera station
       </div>
       <div class="legend-item">
-        <div class="legend-swatch circle" style="background:#E65100"></div>
-        Gas / particulate sensor
+        <div class="legend-swatch" style="background:rgba(245,168,0,0.15);border:1.5px dashed #F5A800;border-radius:2px"></div>
+        Camera viewshed (terrain-limited)
       </div>
 
-      <p style="font-size:11px;color:#888;margin:10px 0 6px;font-style:italic">Sensor placement</p>
+      <p style="font-size:11px;color:#888;margin:10px 0 6px;font-style:italic">Sensor clusters</p>
       <div class="legend-item">
-        <div class="legend-swatch circle" style="background:#E65100;opacity:0.9"></div>
-        Ravine floor node
+        <div class="legend-swatch circle" style="background:#E65100"></div>
+        Downwind detector (E, SSW)
       </div>
       <div class="legend-item">
-        <div class="legend-swatch circle" style="background:#BF360C;opacity:0.9"></div>
-        Ravine rim node
+        <div class="legend-swatch circle" style="background:#7B1A00"></div>
+        Upwind reference (NNW)
       </div>
     </div>
 
@@ -152,13 +147,15 @@ const map = new maplibregl.Map({
   zoom: 10.8,
   attributionControl: { compact: true }
 });
+// Expose globally for debugging
+window._map = map;
 
 map.addControl(new maplibregl.NavigationControl(), 'top-right');
 map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-right');
 
 // ─── Tier colour helper ───────────────────────────────────────────────────────
-const TIER_FILL  = { T1: '#2166AC', T2: '#4DAF4A', T3: '#FF8C00' };
-const TIER_LINE  = { T1: '#174d80', T2: '#2d7a28', T3: '#cc6600' };
+const TIER_FILL = { T1: '#2166AC', T2: '#4DAF4A', T3: '#FF8C00' };
+const TIER_LINE = { T1: '#174d80', T2: '#2d7a28', T3: '#cc6600' };
 
 function tierColor(field, colors) {
   return ['case',
@@ -168,235 +165,154 @@ function tierColor(field, colors) {
   ];
 }
 
+// ─── Helper: safe addLayer (logs errors without breaking the callback) ────────
+function safeAdd(layerDef, beforeId) {
+  try {
+    map.addLayer(layerDef, beforeId);
+  } catch(e) {
+    console.error(`Failed to add layer "${layerDef.id}":`, e.message);
+  }
+}
+
 // ─── Load data + add layers ───────────────────────────────────────────────────
 map.on('load', () => {
 
   // 1. Wildland fire heatmap
-  map.addSource('wf', {
-    type: 'geojson',
-    data: 'data/wf_incidents.geojson'
-  });
-  map.addLayer({
-    id: 'wf-heat',
-    type: 'heatmap',
-    source: 'wf',
-    maxzoom: 14,
+  map.addSource('wf', { type: 'geojson', data: 'data/wf_incidents.geojson' });
+  safeAdd({
+    id: 'wf-heat', type: 'heatmap', source: 'wf', maxzoom: 14,
     paint: {
       'heatmap-weight': 1,
       'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 8, 0.6, 12, 1.5],
-      'heatmap-radius':    ['interpolate', ['linear'], ['zoom'], 8, 14,  12, 26 ],
+      'heatmap-radius':    ['interpolate', ['linear'], ['zoom'], 8, 14, 12, 26],
       'heatmap-opacity':   0.75,
       'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'],
-        0,   'rgba(255,255,0,0)',
-        0.2, 'rgba(255,220,0,0.7)',
-        0.5, 'rgba(255,100,0,0.85)',
-        1,   'rgba(180,0,0,1)'
+        0, 'rgba(255,255,0,0)', 0.2, 'rgba(255,220,0,0.7)',
+        0.5, 'rgba(255,100,0,0.85)', 1, 'rgba(180,0,0,1)'
       ]
     }
   });
 
-  // 2. Existing 6 — rings (donuts)
-  map.addSource('ex6-rings', {
-    type: 'geojson',
-    data: 'data/existing6_rings.geojson'
+  // 2. Existing 6 — rings
+  map.addSource('ex6-rings', { type: 'geojson', data: 'data/existing6_rings.geojson' });
+  safeAdd({ id: 'existing6-rings-fill', type: 'fill', source: 'ex6-rings',
+    paint: { 'fill-color': tierColor('tier', TIER_FILL), 'fill-opacity': 0.22 }
   });
-  map.addLayer({
-    id: 'existing6-rings-fill',
-    type: 'fill',
-    source: 'ex6-rings',
-    paint: {
-      'fill-color':   tierColor('tier', TIER_FILL),
-      'fill-opacity': 0.22
-    }
-  });
-  map.addLayer({
-    id: 'existing6-rings-line',
-    type: 'line',
-    source: 'ex6-rings',
-    paint: {
-      'line-color': tierColor('tier', TIER_LINE),
-      'line-width': 1.4,
-      'line-dasharray': [4, 2]
-    }
+  safeAdd({ id: 'existing6-rings-line', type: 'line', source: 'ex6-rings',
+    paint: { 'line-color': tierColor('tier', TIER_LINE), 'line-width': 1.4,
+             'line-dasharray': [4, 2] }
   });
 
-  // 3. Existing 6 — station markers
-  map.addSource('ex6-stations', {
-    type: 'geojson',
-    data: 'data/existing6_stations.geojson'
+  // 3. Existing 6 — stations
+  map.addSource('ex6-stations', { type: 'geojson', data: 'data/existing6_stations.geojson' });
+  safeAdd({ id: 'existing6-stations', type: 'circle', source: 'ex6-stations',
+    paint: { 'circle-radius': 9, 'circle-color': '#1A237E',
+             'circle-stroke-color': '#fff', 'circle-stroke-width': 2 }
   });
-  map.addLayer({
-    id: 'existing6-stations',
-    type: 'circle',
-    source: 'ex6-stations',
-    paint: {
-      'circle-radius': 9,
-      'circle-color':  '#1A237E',
-      'circle-stroke-color': '#fff',
-      'circle-stroke-width': 2
-    }
-  });
-  map.addLayer({
-    id: 'existing6-labels',
-    type: 'symbol',
-    source: 'ex6-stations',
+  safeAdd({ id: 'existing6-labels', type: 'symbol', source: 'ex6-stations',
     layout: {
       'text-field': ['coalesce', ['get', 'station_id'], ['get', 'name'], ''],
-      'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
-      'text-size': 11,
-      'text-anchor': 'top',
-      'text-offset': [0, 0.9]
+      'text-font': ['Noto Sans Bold', 'Noto Sans Regular'],
+      'text-size': 11, 'text-anchor': 'top', 'text-offset': [0, 0.9]
     },
-    paint: {
-      'text-color': '#1A237E',
-      'text-halo-color': '#fff',
-      'text-halo-width': 1.5
-    }
+    paint: { 'text-color': '#1A237E', 'text-halo-color': '#fff', 'text-halo-width': 1.5 }
   });
 
   // 4. Option C — rings
-  map.addSource('optc-rings', {
-    type: 'geojson',
-    data: 'data/optC_rings.geojson'
-  });
-  map.addLayer({
-    id: 'optC-rings-fill',
-    type: 'fill',
-    source: 'optc-rings',
+  map.addSource('optc-rings', { type: 'geojson', data: 'data/optC_rings.geojson' });
+  safeAdd({ id: 'optC-rings-fill', type: 'fill', source: 'optc-rings',
     layout: { visibility: 'none' },
-    paint: {
-      'fill-color':   tierColor('tier', TIER_FILL),
-      'fill-opacity': 0.2
-    }
+    paint: { 'fill-color': tierColor('tier', TIER_FILL), 'fill-opacity': 0.2 }
   });
-  map.addLayer({
-    id: 'optC-rings-line',
-    type: 'line',
-    source: 'optc-rings',
+  safeAdd({ id: 'optC-rings-line', type: 'line', source: 'optc-rings',
     layout: { visibility: 'none' },
-    paint: {
-      'line-color': tierColor('tier', TIER_LINE),
-      'line-width': 1.2,
-      'line-dasharray': [3, 2]
-    }
+    paint: { 'line-color': tierColor('tier', TIER_LINE), 'line-width': 1.2,
+             'line-dasharray': [3, 2] }
   });
 
   // 5. Option C — stations
-  map.addSource('optc-stations', {
-    type: 'geojson',
-    data: 'data/optC_stations.geojson'
-  });
-  map.addLayer({
-    id: 'optC-stations',
-    type: 'circle',
-    source: 'optc-stations',
+  map.addSource('optc-stations', { type: 'geojson', data: 'data/optC_stations.geojson' });
+  safeAdd({ id: 'optC-stations', type: 'circle', source: 'optc-stations',
     layout: { visibility: 'none' },
     paint: {
       'circle-radius': 8,
-      'circle-color': ['case',
-        ['==', ['get', 'role'], 'existing'], '#1A237E', '#006600'
-      ],
-      'circle-stroke-color': '#fff',
-      'circle-stroke-width': 2
+      'circle-color': ['case', ['==', ['get', 'role'], 'existing'], '#1A237E', '#006600'],
+      'circle-stroke-color': '#fff', 'circle-stroke-width': 2
     }
   });
-  map.addLayer({
-    id: 'optC-labels',
-    type: 'symbol',
-    source: 'optc-stations',
+  safeAdd({ id: 'optC-labels', type: 'symbol', source: 'optc-stations',
     layout: {
       visibility: 'none',
       'text-field': ['coalesce', ['get', 'station_id'], ['get', 'name'], ''],
-      'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
-      'text-size': 10,
-      'text-anchor': 'top',
-      'text-offset': [0, 0.9]
+      'text-font': ['Noto Sans Bold', 'Noto Sans Regular'],
+      'text-size': 10, 'text-anchor': 'top', 'text-offset': [0, 0.9]
     },
-    paint: {
-      'text-color': '#004400',
-      'text-halo-color': '#fff',
-      'text-halo-width': 1.5
-    }
+    paint: { 'text-color': '#004400', 'text-halo-color': '#fff', 'text-halo-width': 1.5 }
   });
 
-  // 6. Gas / particulate sensor nodes
-  map.addSource('sensors', {
-    type: 'geojson',
-    data: 'data/sensors.geojson'
+  // 6. Camera viewsheds — drawn first so they sit BELOW camera markers
+  map.addSource('cam-viewsheds', { type: 'geojson', data: 'data/camera_viewsheds.geojson' });
+  safeAdd({ id: 'cam-viewshed-fill', type: 'fill', source: 'cam-viewsheds',
+    paint: { 'fill-color': '#F5A800', 'fill-opacity': 0.06 }
   });
-  map.addLayer({
-    id: 'sensors',
-    type: 'circle',
-    source: 'sensors',
+  safeAdd({ id: 'cam-viewshed-line', type: 'line', source: 'cam-viewsheds',
+    paint: { 'line-color': '#F5A800', 'line-opacity': 0.45,
+             'line-width': 1.2, 'line-dasharray': [5, 3] }
+  });
+
+  // 7. Gas/particulate sensor nodes (added before cameras so cameras render on top)
+  map.addSource('sensors', { type: 'geojson', data: 'data/sensors.geojson' });
+  safeAdd({ id: 'sensors', type: 'circle', source: 'sensors',
     paint: {
       'circle-radius': 5,
       'circle-color': ['case',
-        ['==', ['get', 'placement'], 'floor'], '#E65100', '#BF360C'
+        ['==', ['get', 'placement'], 'upwind'], '#7B1A00', '#E65100'
       ],
-      'circle-opacity': 0.85,
+      'circle-opacity': 0.9,
       'circle-stroke-color': '#fff',
-      'circle-stroke-width': 0.8
+      'circle-stroke-width': 1
     }
   });
 
-  // 7. PTZ Camera stations — added AFTER sensors so they render on top
-  map.addSource('cameras', {
-    type: 'geojson',
-    data: 'data/cameras.geojson'
+  // 8. PTZ camera markers — on top of everything
+  map.addSource('ptz-cams', { type: 'geojson', data: 'data/cameras.geojson' });
+  safeAdd({ id: 'cam-bg', type: 'circle', source: 'ptz-cams',
+    paint: { 'circle-radius': 16, 'circle-color': '#fff', 'circle-opacity': 0.9 }
   });
-  map.addLayer({
-    id: 'cameras-shadow',
-    type: 'circle',
-    source: 'cameras',
+  safeAdd({ id: 'cam-dot', type: 'circle', source: 'ptz-cams',
     paint: {
-      'circle-radius': 14,
-      'circle-color': '#fff',
-      'circle-opacity': 0.8
-    }
-  });
-  map.addLayer({
-    id: 'cameras-dot',
-    type: 'circle',
-    source: 'cameras',
-    paint: {
-      'circle-radius': 10,
-      'circle-color':  '#F5A800',
+      'circle-radius': 11,
+      'circle-color': '#F5A800',
       'circle-stroke-color': '#7a4e00',
-      'circle-stroke-width': 2
+      'circle-stroke-width': 2.5
     }
   });
-  map.addLayer({
-    id: 'cameras-labels',
-    type: 'symbol',
-    source: 'cameras',
+  safeAdd({ id: 'cam-label', type: 'symbol', source: 'ptz-cams',
     layout: {
       'text-field': ['get', 'name'],
-      'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
-      'text-size': 11,
-      'text-anchor': 'top',
-      'text-offset': [0, 1.2],
+      'text-font': ['Noto Sans Bold', 'Noto Sans Regular'],
+      'text-size': 11, 'text-anchor': 'top', 'text-offset': [0, 1.3],
       'text-max-width': 10
     },
-    paint: {
-      'text-color': '#7a4e00',
-      'text-halo-color': '#fff',
-      'text-halo-width': 2
-    }
+    paint: { 'text-color': '#5a3800', 'text-halo-color': '#fff', 'text-halo-width': 2 }
   });
 
-  // ── Bind toggles ────────────────────────────────────────────────────────────
+  // ── Toggle bindings ──────────────────────────────────────────────────────────
   const togMap = {
     'tog-wf':  ['wf-heat'],
     'tog-ex6': ['existing6-rings-fill','existing6-rings-line','existing6-stations','existing6-labels'],
     'tog-optc':['optC-rings-fill','optC-rings-line','optC-stations','optC-labels'],
-    'tog-cam': ['cameras-shadow','cameras-dot','cameras-labels'],
+    'tog-cam': ['cam-viewshed-fill','cam-viewshed-line','cam-bg','cam-dot','cam-label'],
     'tog-sen': ['sensors']
   };
 
   for (const [cbId, layerIds] of Object.entries(togMap)) {
     document.getElementById(cbId).addEventListener('change', function () {
       const vis = this.checked ? 'visible' : 'none';
-      layerIds.forEach(lid => map.setLayoutProperty(lid, 'visibility', vis));
+      layerIds.forEach(lid => {
+        try { map.setLayoutProperty(lid, 'visibility', vis); }
+        catch(e) { console.warn(`setLayoutProperty failed for ${lid}:`, e.message); }
+      });
     });
   }
 
@@ -410,60 +326,53 @@ map.on('load', () => {
       ).join('');
   }
 
-  // Existing stations
   map.on('click', 'existing6-stations', e => {
     const p = e.features[0].properties;
-    popup.setLngLat(e.lngLat)
-      .setHTML(fmtPopup(p.station_id || p.name || 'Station', [
-        ['Network', 'Existing deployed'],
-        ['Neighbourhood', p.neighbourhood || p.name || '—'],
-        ['Address', p.address || '—']
-      ])).addTo(map);
+    popup.setLngLat(e.lngLat).setHTML(fmtPopup(p.station_id || 'Station', [
+      ['Network', 'Existing deployed'],
+      ['Neighbourhood', p.neighbourhood || p.name || '—'],
+      ['Address', p.address || '—']
+    ])).addTo(map);
   });
 
-  // Option C stations
   map.on('click', 'optC-stations', e => {
     const p = e.features[0].properties;
-    popup.setLngLat(e.lngLat)
-      .setHTML(fmtPopup(p.station_id || p.name || 'Station', [
-        ['Config', 'Option C'],
-        ['Role', p.role === 'existing' ? 'Fixed (existing)' : 'Greedy optimized'],
-        ['Neighbourhood', p.neighbourhood || '—']
-      ])).addTo(map);
+    popup.setLngLat(e.lngLat).setHTML(fmtPopup(p.station_id || 'Station', [
+      ['Config', 'Option C'],
+      ['Role', p.role === 'existing' ? 'Fixed (existing)' : 'Greedy optimised'],
+      ['Neighbourhood', p.neighbourhood || '—']
+    ])).addTo(map);
   });
 
-  // Cameras
-  map.on('click', 'cameras-dot', e => {
+  map.on('click', 'cam-dot', e => {
     const p = e.features[0].properties;
-    popup.setLngLat(e.lngLat)
-      .setHTML(fmtPopup(p.name, [
-        ['Mount', p.mount],
-        ['Coverage', `${p.coverage_km} km radius`],
-        ['Corridor', p.corridor]
-      ])).addTo(map);
+    popup.setLngLat(e.lngLat).setHTML(fmtPopup(p.name, [
+      ['Mount', p.mount],
+      ['Max range', `${p.coverage_km} km (open terrain)`],
+      ['Corridor', p.corridor],
+      ['Terrain note', 'Valley floor coverage limited until smoke clears escarpment (~20–40 m)']
+    ])).addTo(map);
   });
 
-  // Sensors
   map.on('click', 'sensors', e => {
     const p = e.features[0].properties;
-    popup.setLngLat(e.lngLat)
-      .setHTML(fmtPopup(p.id, [
-        ['Corridor', p.corridor],
-        ['Placement', p.placement],
-        ['Detects', p.detects],
-        ['Comms', p.comms],
-        ['Power', p.power],
-        ['Alert latency', `${p.alert_latency_min} min`]
-      ])).addTo(map);
+    popup.setLngLat(e.lngLat).setHTML(fmtPopup(p.id, [
+      ['Cluster', p.cluster],
+      ['Role', p.role],
+      ['Detects', p.detects],
+      ['Comms', p.comms],
+      ['Power', p.power],
+      ['Alert latency', `≤${p.alert_latency_min} min`]
+    ])).addTo(map);
   });
 
-  // Cursor changes
-  const clickableLayers = ['existing6-stations','optC-stations','cameras-dot','sensors'];
-  clickableLayers.forEach(lid => {
+  const clickable = ['existing6-stations','optC-stations','cam-dot','sensors'];
+  clickable.forEach(lid => {
     map.on('mouseenter', lid, () => { map.getCanvas().style.cursor = 'pointer'; });
     map.on('mouseleave', lid, () => { map.getCanvas().style.cursor = ''; });
   });
-});
+
+}); // end map.on('load')
 </script>
 </body>
 </html>
