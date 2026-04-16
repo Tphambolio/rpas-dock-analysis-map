@@ -13,7 +13,7 @@
       "properties": {
         "name": "Walterdale Hill",
         "mount": "Telecom tower / utility structure",
-        "coverage_km": 20,
+        "coverage_km": 8,
         "corridor": "Downtown valley + Rossdale flats, both banks"
       }
     },
@@ -29,7 +29,7 @@
       "properties": {
         "name": "Mill Creek Ravine Rim",
         "mount": "Utility pole cluster / park structure",
-        "coverage_km": 15,
+        "coverage_km": 6,
         "corridor": "Mill Creek / Whitemud confluence"
       }
     },
@@ -45,7 +45,7 @@
       "properties": {
         "name": "Whitemud Drive Ridge",
         "mount": "Hydro transmission tower",
-        "coverage_km": 18,
+        "coverage_km": 8,
         "corridor": "Whitemud Creek full length"
       }
     },
@@ -61,7 +61,7 @@
       "properties": {
         "name": "Terwillegar Ridge",
         "mount": "Park service / telecom structure",
-        "coverage_km": 15,
+        "coverage_km": 7,
         "corridor": "SW ravines, Terwillegar, Oleskiw"
       }
     },
@@ -77,7 +77,7 @@
       "properties": {
         "name": "Gold Bar / Beverly Rim",
         "mount": "Cell tower",
-        "coverage_km": 18,
+        "coverage_km": 8,
         "corridor": "East valley, Rundle Park ravines"
       }
     },
@@ -93,7 +93,7 @@
       "properties": {
         "name": "Strathearn Heights",
         "mount": "Building rooftop / hydro tower",
-        "coverage_km": 15,
+        "coverage_km": 6,
         "corridor": "Downtown valley east approach"
       }
     },
@@ -109,7 +109,7 @@
       "properties": {
         "name": "St. Albert Trail NW",
         "mount": "Telecom mast",
-        "coverage_km": 20,
+        "coverage_km": 8,
         "corridor": "River valley NW, Big Island approach"
       }
     },
@@ -125,7 +125,7 @@
       "properties": {
         "name": "Victoria Trail NE",
         "mount": "Cell tower",
-        "coverage_km": 18,
+        "coverage_km": 8,
         "corridor": "Beverly ravines, north valley"
       }
     }
