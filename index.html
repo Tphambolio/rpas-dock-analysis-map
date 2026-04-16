@@ -77,14 +77,27 @@
       <div class="toggle-row">
         <input type="checkbox" id="tog-vs" checked>
         <div class="toggle-swatch" style="background:rgba(245,168,0,0.25);border:1.5px dashed #F5A800;border-radius:2px"></div>
-        <label for="tog-vs">Camera Viewsheds (terrain)</label>
+        <label for="tog-vs">Camera Viewsheds (terrain) ▾</label>
         <span class="feat-count">8</span>
+      </div>
+      <div id="vs-per-cam" style="padding-left:18px;display:block">
+        <!-- Individual viewshed checkboxes injected by JS after geojson loads -->
       </div>
       <div class="toggle-row">
         <input type="checkbox" id="tog-sen" checked>
         <div class="toggle-swatch circle" style="background:#E65100"></div>
         <label for="tog-sen">Gas / Particulate Sensors</label>
         <span class="feat-count">84</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">River Valley Recreation</div>
+      <div class="toggle-row">
+        <input type="checkbox" id="tog-rec" checked>
+        <div class="toggle-swatch circle" style="background:#00838F"></div>
+        <label for="tog-rec">Parks &amp; Facilities</label>
+        <span class="feat-count">27</span>
       </div>
     </div>
 
@@ -131,6 +144,12 @@
       <div class="legend-item">
         <div class="legend-swatch circle" style="background:#7B1A00"></div>
         Upwind reference (NNW)
+      </div>
+
+      <p style="font-size:11px;color:#888;margin:10px 0 6px;font-style:italic">River Valley Recreation</p>
+      <div class="legend-item">
+        <div class="legend-swatch circle" style="background:#00838F"></div>
+        River Valley Park / Golf / Snowshoe
       </div>
     </div>
 
@@ -256,17 +275,117 @@ map.on('load', () => {
     paint: { 'text-color': '#004400', 'text-halo-color': '#fff', 'text-halo-width': 1.5 }
   });
 
-  // 6. Camera viewsheds — drawn first so they sit BELOW camera markers
+  // 6. Camera viewsheds — per-camera layers, drawn first so they sit BELOW markers
   map.addSource('cam-viewsheds', { type: 'geojson', data: 'data/camera_viewsheds.geojson' });
-  safeAdd({ id: 'cam-viewshed-fill', type: 'fill', source: 'cam-viewsheds',
-    paint: { 'fill-color': '#F5A800', 'fill-opacity': 0.06 }
-  });
-  safeAdd({ id: 'cam-viewshed-line', type: 'line', source: 'cam-viewsheds',
-    paint: { 'line-color': '#F5A800', 'line-opacity': 0.45,
-             'line-width': 1.2, 'line-dasharray': [5, 3] }
+
+  // One fill + line layer per camera, named vs-<slug>-fill / vs-<slug>-line
+  function camSlug(name) { return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g,''); }
+  const vsLayerIds = [];     // all viewshed layer ids (for master toggle)
+  const vsCamLayers = {};    // camName → [fillId, lineId]
+
+  // We need the feature names from the geojson; inject them as soon as source loads
+  map.once('sourcedata', function onVsSource(e) {
+    if (e.sourceId !== 'cam-viewsheds' || !e.isSourceLoaded) return;
+    const feats = map.querySourceFeatures('cam-viewsheds');
+    const names = [...new Set(feats.map(f => f.properties.name))];
+    if (!names.length) {
+      // fallback: build from geojson fetch
+      fetch('data/camera_viewsheds.geojson').then(r=>r.json()).then(fc => buildVsLayers(fc.features.map(f=>f.properties.name)));
+      return;
+    }
+    buildVsLayers(names);
   });
 
-  // 7. Gas/particulate sensor nodes (added before cameras so cameras render on top)
+  // Always also build via fetch (querySourceFeatures may fire before tiles ready)
+  fetch('data/camera_viewsheds.geojson').then(r=>r.json()).then(fc => {
+    buildVsLayers(fc.features.map(f=>f.properties.name));
+  });
+
+  let vsBuilt = false;
+  function buildVsLayers(names) {
+    if (vsBuilt) return;
+    vsBuilt = true;
+    const container = document.getElementById('vs-per-cam');
+    container.innerHTML = '';
+
+    names.forEach(name => {
+      const slug = camSlug(name);
+      const fillId = `vs-${slug}-fill`;
+      const lineId = `vs-${slug}-line`;
+
+      safeAdd({ id: fillId, type: 'fill', source: 'cam-viewsheds',
+        filter: ['==', ['get', 'name'], name],
+        paint: { 'fill-color': '#F5A800', 'fill-opacity': 0.08 }
+      });
+      safeAdd({ id: lineId, type: 'line', source: 'cam-viewsheds',
+        filter: ['==', ['get', 'name'], name],
+        paint: { 'line-color': '#F5A800', 'line-opacity': 0.55,
+                 'line-width': 1.2, 'line-dasharray': [5, 3] }
+      });
+
+      vsLayerIds.push(fillId, lineId);
+      vsCamLayers[name] = [fillId, lineId];
+
+      // Short label: drop common suffixes for sidebar readability
+      const label = name.replace(' Ravine Rim','').replace(' Drive','').replace(' Trail','')
+                        .replace(' Heights','').replace(' Hill','');
+
+      const cbId = `vs-cb-${slug}`;
+      const row = document.createElement('div');
+      row.className = 'toggle-row';
+      row.style.cssText = 'font-size:11px;padding:2px 0';
+      row.innerHTML = `<input type="checkbox" id="${cbId}" checked>
+        <div class="toggle-swatch" style="background:rgba(245,168,0,0.2);border:1px dashed #F5A800;border-radius:2px;width:10px;height:10px"></div>
+        <label for="${cbId}" style="font-size:11px">${label}</label>`;
+      container.appendChild(row);
+
+      document.getElementById(cbId).addEventListener('change', function() {
+        const vis = this.checked ? 'visible' : 'none';
+        [fillId, lineId].forEach(lid => {
+          try { map.setLayoutProperty(lid, 'visibility', vis); } catch(e) {}
+        });
+        // Sync master checkbox state
+        const allChecked = [...container.querySelectorAll('input')].every(cb => cb.checked);
+        const anyChecked = [...container.querySelectorAll('input')].some(cb => cb.checked);
+        const master = document.getElementById('tog-vs');
+        master.indeterminate = anyChecked && !allChecked;
+        master.checked = allChecked;
+      });
+    });
+
+    // Master viewshed toggle now controls per-camera layers
+    document.getElementById('tog-vs').addEventListener('change', function() {
+      const vis = this.checked ? 'visible' : 'none';
+      vsLayerIds.forEach(lid => {
+        try { map.setLayoutProperty(lid, 'visibility', vis); } catch(e) {}
+      });
+      container.querySelectorAll('input').forEach(cb => { cb.checked = this.checked; });
+    });
+  }
+
+  // 7. River Valley Recreation facilities
+  map.addSource('recreation', { type: 'geojson', data: 'data/recreation.geojson' });
+  safeAdd({ id: 'recreation', type: 'circle', source: 'recreation',
+    paint: {
+      'circle-radius': 7,
+      'circle-color': '#00838F',
+      'circle-stroke-color': '#fff',
+      'circle-stroke-width': 1.5,
+      'circle-opacity': 0.85
+    }
+  });
+  safeAdd({ id: 'recreation-labels', type: 'symbol', source: 'recreation',
+    layout: {
+      'text-field': ['get', 'name'],
+      'text-font': ['Noto Sans Regular', 'Noto Sans Bold'],
+      'text-size': 10, 'text-anchor': 'top', 'text-offset': [0, 1.0],
+      'text-max-width': 12,
+      'text-optional': true
+    },
+    paint: { 'text-color': '#004D52', 'text-halo-color': '#fff', 'text-halo-width': 1.5 }
+  });
+
+  // 8. Gas/particulate sensor nodes (added before cameras so cameras render on top)
   map.addSource('sensors', { type: 'geojson', data: 'data/sensors.geojson' });
   safeAdd({ id: 'sensors', type: 'circle', source: 'sensors',
     paint: {
@@ -280,7 +399,7 @@ map.on('load', () => {
     }
   });
 
-  // 8. PTZ camera markers — on top of everything
+  // 9. PTZ camera markers — on top of everything
   map.addSource('ptz-cams', { type: 'geojson', data: 'data/cameras.geojson' });
   safeAdd({ id: 'cam-bg', type: 'circle', source: 'ptz-cams',
     paint: { 'circle-radius': 16, 'circle-color': '#fff', 'circle-opacity': 0.9 }
@@ -303,15 +422,16 @@ map.on('load', () => {
     paint: { 'text-color': '#5a3800', 'text-halo-color': '#fff', 'text-halo-width': 2 }
   });
 
-  // ── Toggle bindings ──────────────────────────────────────────────────────────
+  // ── Toggle bindings (simple layers) ─────────────────────────────────────────
   const togMap = {
     'tog-wf':  ['wf-heat'],
     'tog-ex6': ['existing6-rings-fill','existing6-rings-line','existing6-stations','existing6-labels'],
     'tog-optc':['optC-rings-fill','optC-rings-line','optC-stations','optC-labels'],
     'tog-cam': ['cam-bg','cam-dot','cam-label'],
-    'tog-vs':  ['cam-viewshed-fill','cam-viewshed-line'],
-    'tog-sen': ['sensors']
+    'tog-sen': ['sensors'],
+    'tog-rec': ['recreation','recreation-labels']
   };
+  // Note: tog-vs is handled by buildVsLayers() above
 
   for (const [cbId, layerIds] of Object.entries(togMap)) {
     document.getElementById(cbId).addEventListener('change', function () {
@@ -385,7 +505,14 @@ map.on('load', () => {
     ])).addTo(map);
   });
 
-  const clickable = ['existing6-stations','optC-stations','cam-dot','cam-viewshed-fill','sensors'];
+  map.on('click', 'recreation', e => {
+    const p = e.features[0].properties;
+    const rows = [['Type', p.type], ['Address', p.address || '—']];
+    if (p.url) rows.push(['Info', `<a href="${p.url}" target="_blank" style="color:#00838F">edmonton.ca ↗</a>`]);
+    popup.setLngLat(e.lngLat).setHTML(fmtPopup(p.name, rows)).addTo(map);
+  });
+
+  const clickable = ['existing6-stations','optC-stations','cam-dot','cam-viewshed-fill','sensors','recreation'];
   clickable.forEach(lid => {
     map.on('mouseenter', lid, () => { map.getCanvas().style.cursor = 'pointer'; });
     map.on('mouseleave', lid, () => { map.getCanvas().style.cursor = ''; });
