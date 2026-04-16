@@ -319,52 +319,7 @@ map.on('load', () => {
     }
   });
 
-  // 6. PTZ Camera stations
-  map.addSource('cameras', {
-    type: 'geojson',
-    data: 'data/cameras.geojson'
-  });
-  map.addLayer({
-    id: 'cameras-halo',
-    type: 'circle',
-    source: 'cameras',
-    paint: {
-      'circle-radius': 14,
-      'circle-color': 'rgba(245,168,0,0.2)',
-      'circle-stroke-color': 'rgba(245,168,0,0.6)',
-      'circle-stroke-width': 1
-    }
-  });
-  map.addLayer({
-    id: 'cameras',
-    type: 'circle',
-    source: 'cameras',
-    paint: {
-      'circle-radius': 7,
-      'circle-color':  '#F5A800',
-      'circle-stroke-color': '#8B6000',
-      'circle-stroke-width': 1.5
-    }
-  });
-  map.addLayer({
-    id: 'cameras-labels',
-    type: 'symbol',
-    source: 'cameras',
-    layout: {
-      'text-field': ['get', 'name'],
-      'text-font': ['Open Sans SemiBold', 'Arial Unicode MS Regular'],
-      'text-size': 10,
-      'text-anchor': 'bottom',
-      'text-offset': [0, -1]
-    },
-    paint: {
-      'text-color': '#6b4c00',
-      'text-halo-color': '#fff',
-      'text-halo-width': 1.5
-    }
-  });
-
-  // 7. Gas / particulate sensor nodes
+  // 6. Gas / particulate sensor nodes
   map.addSource('sensors', {
     type: 'geojson',
     data: 'data/sensors.geojson'
@@ -384,12 +339,57 @@ map.on('load', () => {
     }
   });
 
+  // 7. PTZ Camera stations — added AFTER sensors so they render on top
+  map.addSource('cameras', {
+    type: 'geojson',
+    data: 'data/cameras.geojson'
+  });
+  map.addLayer({
+    id: 'cameras-shadow',
+    type: 'circle',
+    source: 'cameras',
+    paint: {
+      'circle-radius': 14,
+      'circle-color': '#fff',
+      'circle-opacity': 0.8
+    }
+  });
+  map.addLayer({
+    id: 'cameras-dot',
+    type: 'circle',
+    source: 'cameras',
+    paint: {
+      'circle-radius': 10,
+      'circle-color':  '#F5A800',
+      'circle-stroke-color': '#7a4e00',
+      'circle-stroke-width': 2
+    }
+  });
+  map.addLayer({
+    id: 'cameras-labels',
+    type: 'symbol',
+    source: 'cameras',
+    layout: {
+      'text-field': ['get', 'name'],
+      'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+      'text-size': 11,
+      'text-anchor': 'top',
+      'text-offset': [0, 1.2],
+      'text-max-width': 10
+    },
+    paint: {
+      'text-color': '#7a4e00',
+      'text-halo-color': '#fff',
+      'text-halo-width': 2
+    }
+  });
+
   // ── Bind toggles ────────────────────────────────────────────────────────────
   const togMap = {
     'tog-wf':  ['wf-heat'],
     'tog-ex6': ['existing6-rings-fill','existing6-rings-line','existing6-stations','existing6-labels'],
     'tog-optc':['optC-rings-fill','optC-rings-line','optC-stations','optC-labels'],
-    'tog-cam': ['cameras-halo','cameras','cameras-labels'],
+    'tog-cam': ['cameras-shadow','cameras-dot','cameras-labels'],
     'tog-sen': ['sensors']
   };
 
@@ -433,7 +433,7 @@ map.on('load', () => {
   });
 
   // Cameras
-  map.on('click', 'cameras', e => {
+  map.on('click', 'cameras-dot', e => {
     const p = e.features[0].properties;
     popup.setLngLat(e.lngLat)
       .setHTML(fmtPopup(p.name, [
@@ -458,7 +458,7 @@ map.on('load', () => {
   });
 
   // Cursor changes
-  const clickableLayers = ['existing6-stations','optC-stations','cameras','sensors'];
+  const clickableLayers = ['existing6-stations','optC-stations','cameras-dot','sensors'];
   clickableLayers.forEach(lid => {
     map.on('mouseenter', lid, () => { map.getCanvas().style.cursor = 'pointer'; });
     map.on('mouseleave', lid, () => { map.getCanvas().style.cursor = ''; });
