@@ -1,0 +1,13 @@
+{
+"type": "FeatureCollection",
+"name": "existing6_stations",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "id": "FS1", "label": "FS01 — Boyle Street", "neighbourhood": "Boyle Street", "address": "10351–96 St NW" }, "geometry": { "type": "Point", "coordinates": [ -113.483426, 53.547885 ] } },
+{ "type": "Feature", "properties": { "id": "FS3", "label": "FS03 — McKernan", "neighbourhood": "McKernan", "address": "11226–76 Ave NW" }, "geometry": { "type": "Point", "coordinates": [ -113.522061, 53.512577 ] } },
+{ "type": "Feature", "properties": { "id": "FS13", "label": "FS13 — Royal Gardens", "neighbourhood": "Royal Gardens", "address": "4035–119 St NW" }, "geometry": { "type": "Point", "coordinates": [ -113.538045, 53.477936 ] } },
+{ "type": "Feature", "properties": { "id": "FS18", "label": "FS18 — Hairsine", "neighbourhood": "Hairsine", "address": "13808 Victoria Trail NW" }, "geometry": { "type": "Point", "coordinates": [ -113.386948, 53.601346 ] } },
+{ "type": "Feature", "properties": { "id": "FS21", "label": "FS21 — Rossdale", "neighbourhood": "Rossdale", "address": "9315–101 St NW" }, "geometry": { "type": "Point", "coordinates": [ -113.492019, 53.528815 ] } },
+{ "type": "Feature", "properties": { "id": "FS31", "label": "FS31 — Ambleside", "neighbourhood": "Ambleside", "address": "3865 Allan Dr SW" }, "geometry": { "type": "Point", "coordinates": [ -113.605677, 53.425454 ] } }
+]
+}

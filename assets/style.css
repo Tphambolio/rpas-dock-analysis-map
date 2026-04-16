@@ -1,0 +1,410 @@
+/* Edmonton EFRS RPAS Network — Shared Styles */
+:root {
+  --coe-navy:  #003366;
+  --coe-gold:  #F5A800;
+  --coe-light: #E8EFFA;
+  --text:      #1a1a1a;
+  --sidebar-w: 280px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  background: #f4f6f9;
+}
+
+/* ── Navbar ───────────────────────────────────────────────────────── */
+#navbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 48px;
+  background: var(--coe-navy);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  z-index: 2000;
+  gap: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+#navbar .brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+#navbar .brand-bar {
+  width: 4px;
+  height: 28px;
+  background: var(--coe-gold);
+  border-radius: 2px;
+}
+
+#navbar .brand-text {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+#navbar nav a {
+  color: rgba(255,255,255,0.8);
+  text-decoration: none;
+  font-size: 13px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s;
+}
+
+#navbar nav a:hover,
+#navbar nav a.active {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+}
+
+#navbar nav a.active {
+  border-bottom: 2px solid var(--coe-gold);
+}
+
+/* ── Sidebar (map page) ───────────────────────────────────────────── */
+#sidebar {
+  position: fixed;
+  top: 48px; left: 0; bottom: 0;
+  width: var(--sidebar-w);
+  background: #fff;
+  border-right: 1px solid #d0d7e3;
+  overflow-y: auto;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+#sidebar-header {
+  background: var(--coe-navy);
+  color: #fff;
+  padding: 14px 16px 12px;
+  flex-shrink: 0;
+}
+
+#sidebar-header h2 {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--coe-gold);
+  margin-bottom: 2px;
+}
+
+#sidebar-header p {
+  font-size: 11px;
+  color: rgba(255,255,255,0.65);
+}
+
+#sidebar-body {
+  padding: 12px 14px;
+  flex: 1;
+}
+
+.sidebar-section {
+  margin-bottom: 18px;
+}
+
+.sidebar-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: #6b7a99;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #e0e4ed;
+  padding-bottom: 4px;
+}
+
+/* Toggle rows */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-row input[type=checkbox] {
+  width: 16px; height: 16px;
+  accent-color: var(--coe-navy);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.toggle-row label {
+  font-size: 13px;
+  cursor: pointer;
+  flex: 1;
+}
+
+.toggle-swatch {
+  width: 14px; height: 14px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  border: 1px solid rgba(0,0,0,0.15);
+}
+.toggle-swatch.circle {
+  border-radius: 50%;
+}
+
+/* Legend */
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  padding: 2px 0;
+  color: #444;
+}
+
+.legend-swatch {
+  width: 20px; height: 12px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.legend-swatch.circle {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+}
+
+.legend-swatch.ring {
+  border-radius: 2px;
+  opacity: 0.7;
+}
+
+/* ── Map container ────────────────────────────────────────────────── */
+#map {
+  position: fixed;
+  top: 48px;
+  left: var(--sidebar-w);
+  right: 0; bottom: 0;
+}
+
+/* ── Popup overrides ──────────────────────────────────────────────── */
+.maplibregl-popup-content {
+  border-radius: 6px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+  padding: 12px 16px;
+  min-width: 180px;
+  max-width: 260px;
+  font-size: 13px;
+}
+
+.popup-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--coe-navy);
+  margin-bottom: 6px;
+  border-bottom: 1px solid #e0e4ed;
+  padding-bottom: 5px;
+}
+
+.popup-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 0;
+  font-size: 12px;
+}
+
+.popup-key   { color: #666; }
+.popup-value { font-weight: 500; color: #222; text-align: right; }
+
+/* ── Methodology page ─────────────────────────────────────────────── */
+#meth-page {
+  padding-top: 48px;
+  min-height: 100vh;
+}
+
+.meth-hero {
+  background: var(--coe-navy);
+  color: #fff;
+  padding: 36px 0 28px;
+  margin-bottom: 0;
+}
+
+.meth-hero .container {
+  max-width: 940px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.meth-hero h1 {
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.meth-hero .subtitle {
+  font-size: 14px;
+  color: rgba(255,255,255,0.72);
+}
+
+.meth-hero .gold-bar {
+  width: 48px; height: 4px;
+  background: var(--coe-gold);
+  border-radius: 2px;
+  margin-top: 12px;
+}
+
+.meth-body {
+  max-width: 940px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
+.meth-section {
+  margin-bottom: 48px;
+}
+
+.meth-section h2 {
+  font-size: 19px;
+  color: var(--coe-navy);
+  font-weight: 700;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--coe-light);
+}
+
+.meth-section h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a2a44;
+  margin: 18px 0 8px;
+}
+
+.meth-section p {
+  line-height: 1.7;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+/* Data tables */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 12px 0 18px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.data-table th {
+  background: var(--coe-navy);
+  color: #fff;
+  padding: 9px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.3px;
+}
+
+.data-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #edf0f5;
+  vertical-align: top;
+  color: #333;
+}
+
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:nth-child(even) td { background: #f8f9fc; }
+.data-table .highlight td { background: #EAF0FF; font-weight: 600; }
+
+.badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.badge-blue  { background: #dbeafe; color: #1e40af; }
+.badge-green { background: #dcfce7; color: #166534; }
+.badge-amber { background: #fef3c7; color: #92400e; }
+
+/* Integration flow diagram */
+.flow-diagram {
+  background: var(--coe-navy);
+  color: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.8;
+  overflow-x: auto;
+  margin: 16px 0;
+}
+
+/* Report links */
+.report-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.report-card {
+  background: #fff;
+  border: 1px solid #d0d7e3;
+  border-radius: 8px;
+  padding: 16px;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+.report-card:hover {
+  box-shadow: 0 4px 16px rgba(0,51,102,0.12);
+  border-color: var(--coe-navy);
+}
+
+.report-card-icon {
+  font-size: 22px;
+  margin-bottom: 2px;
+}
+
+.report-card-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--coe-navy);
+}
+
+.report-card-desc {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.report-card-tag {
+  font-size: 11px;
+  color: var(--coe-gold);
+  font-weight: 600;
+  margin-top: auto;
+}
+
+/* Callout box */
+.callout {
+  border-left: 4px solid var(--coe-gold);
+  background: #fffbf0;
+  padding: 12px 16px;
+  border-radius: 0 6px 6px 0;
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 14px 0;
+}

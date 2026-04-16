@@ -1,0 +1,133 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -113.4915,
+          53.5268
+        ]
+      },
+      "properties": {
+        "name": "Walterdale Hill",
+        "mount": "Telecom tower / utility structure",
+        "coverage_km": 20,
+        "corridor": "Downtown valley + Rossdale flats, both banks"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -113.5031,
+          53.4752
+        ]
+      },
+      "properties": {
+        "name": "Mill Creek Ravine Rim",
+        "mount": "Utility pole cluster / park structure",
+        "coverage_km": 15,
+        "corridor": "Mill Creek / Whitemud confluence"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -113.5938,
+          53.5195
+        ]
+      },
+      "properties": {
+        "name": "Whitemud Drive Ridge",
+        "mount": "Hydro transmission tower",
+        "coverage_km": 18,
+        "corridor": "Whitemud Creek full length"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -113.6126,
+          53.4334
+        ]
+      },
+      "properties": {
+        "name": "Terwillegar Ridge",
+        "mount": "Park service / telecom structure",
+        "coverage_km": 15,
+        "corridor": "SW ravines, Terwillegar, Oleskiw"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -113.4172,
+          53.4957
+        ]
+      },
+      "properties": {
+        "name": "Gold Bar / Beverly Rim",
+        "mount": "Cell tower",
+        "coverage_km": 18,
+        "corridor": "East valley, Rundle Park ravines"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -113.4612,
+          53.5211
+        ]
+      },
+      "properties": {
+        "name": "Strathearn Heights",
+        "mount": "Building rooftop / hydro tower",
+        "coverage_km": 15,
+        "corridor": "Downtown valley east approach"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -113.5441,
+          53.5587
+        ]
+      },
+      "properties": {
+        "name": "St. Albert Trail NW",
+        "mount": "Telecom mast",
+        "coverage_km": 20,
+        "corridor": "River valley NW, Big Island approach"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -113.3928,
+          53.5987
+        ]
+      },
+      "properties": {
+        "name": "Victoria Trail NE",
+        "mount": "Cell tower",
+        "coverage_km": 18,
+        "corridor": "Beverly ravines, north valley"
+      }
+    }
+  ]
+}

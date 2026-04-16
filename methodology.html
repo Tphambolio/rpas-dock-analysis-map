@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Methodology — Edmonton EFRS RPAS Network</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<!-- Navbar -->
+<div id="navbar">
+  <a href="index.html" class="brand">
+    <div class="brand-bar"></div>
+    <span class="brand-text">Edmonton EFRS · RPAS Network</span>
+  </a>
+  <nav>
+    <a href="index.html">Map</a>
+    <a href="methodology.html" class="active">Methodology</a>
+  </nav>
+</div>
+
+<div id="meth-page">
+  <div class="meth-hero">
+    <div class="container">
+      <h1>RPAS Dock Placement Methodology</h1>
+      <div class="subtitle">Edmonton Fire Rescue Services · DJI M4TD Dock Network Analysis v3.0 · April 2026</div>
+      <div class="gold-bar"></div>
+    </div>
+  </div>
+
+  <div class="meth-body">
+
+    <!-- 1. Introduction -->
+    <div class="meth-section">
+      <h2>1. Introduction</h2>
+      <p>Edmonton Fire Rescue Services operates twelve DJI Matrice 4TD (M4TD) drone-in-a-box docks across the city. Each dock provides fully autonomous launch, flight, and landing capabilities, enabling drones to respond to fire incidents without on-site pilot deployment. This analysis determines the optimal placement for a fixed 11-dock network to maximise weighted response coverage across all call types, with particular emphasis on wildland fire (WF) risk in the river valley and ravine system.</p>
+      <p>The analysis compares three configurations: the current 11-dock deployment, a fully optimised Option B configuration, and Option C — a hybrid that locks in the six existing deployed docks and uses greedy optimisation to select the five best additional locations from the remaining candidates.</p>
+      <div class="callout">
+        <strong>Key result:</strong> Option C achieves <strong>89.4% wildland fire T1 coverage</strong> (≤5 min response) — 2.5 points higher than Option B — while maintaining 97.8% total T1+T2 coverage. This makes it the recommended path for EFRS operational planning.
+      </div>
+    </div>
+
+    <!-- 2. Data Sources -->
+    <div class="meth-section">
+      <h2>2. Data Sources</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Dataset</th>
+            <th>Source</th>
+            <th>Records</th>
+            <th>Use</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Wildland fire incidents</td>
+            <td>City of Edmonton Open Data</td>
+            <td>1,110</td>
+            <td>Spatial demand · heatmap</td>
+          </tr>
+          <tr>
+            <td>Structure fires (FR2)</td>
+            <td>City of Edmonton Open Data</td>
+            <td>7,814</td>
+            <td>Weighted demand</td>
+          </tr>
+          <tr>
+            <td>Rescue / medical complex</td>
+            <td>City of Edmonton Open Data</td>
+            <td>4,986</td>
+            <td>Weighted demand</td>
+          </tr>
+          <tr>
+            <td>Vegetation fires</td>
+            <td>City of Edmonton Open Data</td>
+            <td>1,618</td>
+            <td>Weighted demand</td>
+          </tr>
+          <tr>
+            <td>Fire station locations (OD)</td>
+            <td>City of Edmonton Open Data</td>
+            <td>31</td>
+            <td>Dock candidate sites</td>
+          </tr>
+          <tr>
+            <td>DJI M4TD specifications</td>
+            <td>DJI Enterprise</td>
+            <td>—</td>
+            <td>Speed, range, endurance parameters</td>
+          </tr>
+          <tr>
+            <td>N5 Sensor specifications</td>
+            <td>N5 Sensors / DHS S&amp;T</td>
+            <td>—</td>
+            <td>Gas sensor platform selection</td>
+          </tr>
+          <tr>
+            <td>IQ FireWatch camera specs</td>
+            <td>IQ FireWatch GmbH</td>
+            <td>—</td>
+            <td>PTZ camera platform selection</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 3. Demand Analysis -->
+    <div class="meth-section">
+      <h2>3. Demand Analysis</h2>
+      <p>Incident demand is spatially aggregated and weighted by call type to reflect the differential value of drone-assisted response. Wildland fire receives the highest weight (3.0×) because early aerial reconnaissance dramatically reduces escalation risk and crew safety exposure in WUI conditions.</p>
+      <table class="data-table">
+        <thead>
+          <tr><th>Call Type</th><th>Incidents</th><th>Weight</th><th>Weighted Demand</th><th>Rationale</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Wildland Fire (WF)</td><td>1,110</td><td>3.0×</td><td>3,330</td>
+            <td>Reconnaissance, crew safety, WUI escalation risk</td>
+          </tr>
+          <tr>
+            <td>Rescue / Complex (RC)</td><td>4,986</td><td>2.5×</td><td>12,465</td>
+            <td>Situational awareness, secondary search</td>
+          </tr>
+          <tr>
+            <td>Structure Fire (FR2)</td><td>7,814</td><td>2.0×</td><td>15,628</td>
+            <td>Roof survey, suppression support, thermal</td>
+          </tr>
+          <tr>
+            <td>Vegetation Fire (VF)</td><td>1,618</td><td>1.0×</td><td>1,618</td>
+            <td>Hotspot detection</td>
+          </tr>
+          <tr style="font-weight:600;background:#f0f4ff">
+            <td>Total</td><td>15,528</td><td>—</td><td>33,041</td><td>—</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>Wildland fire incidents cluster along the North Saskatchewan River valley and its tributary ravines (Mill Creek, Whitemud Creek, Beverly ravines, Terwillegar / Oleskiw). This spatial concentration drives the placement of both dock stations and the early detection network in and around the ravine system.</p>
+    </div>
+
+    <!-- 4. Optimization Methodology -->
+    <div class="meth-section">
+      <h2>4. Optimization Methodology</h2>
+      <h3>Response Time Model</h3>
+      <p>The M4TD achieves 90 seconds from dock alarm to airborne, then cruises at 15 m/s (54 km/h). Coverage tiers are calculated from dock centroid to incident centroid in straight-line distance:</p>
+      <table class="data-table">
+        <thead><tr><th>Tier</th><th>Max Distance</th><th>Max Response</th><th>Significance</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-blue">T1</span></td><td>3,150 m</td><td>&lt;5 min</td><td>On-scene before first ground unit for most calls</td></tr>
+          <tr><td><span class="badge badge-green">T2</span></td><td>5,850 m</td><td>≤8 min</td><td>Concurrent with first ground unit arrival</td></tr>
+          <tr><td><span class="badge badge-amber">T3</span></td><td>9,450 m</td><td>≤12 min</td><td>Useful for prolonged incidents, multi-alarm</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Greedy Set-Cover Algorithm</h3>
+      <p>Candidate sites are all 31 City of Edmonton fire stations. The algorithm iterates:</p>
+      <ol style="padding-left:20px;line-height:2;font-size:13px">
+        <li>Score each candidate: sum of weighted demand for incidents newly covered at T1, T2, T3 (weights 3, 2, 1)</li>
+        <li>Select the candidate with the highest marginal score</li>
+        <li>Mark all newly covered incidents; repeat until 11 docks selected</li>
+      </ol>
+      <p>Option C constrains the first six selections to the existing deployed stations (FS01, FS03, FS13, FS18, FS21, FS31) before running the greedy phase for positions 7–11.</p>
+
+      <h3>Configuration Comparison</h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Configuration</th>
+            <th>Docks</th>
+            <th>T1 Coverage</th>
+            <th>T1+T2</th>
+            <th>WF T1</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Current 11</td><td>11</td><td>72.1%</td><td>94.2%</td><td>71.3%</td>
+            <td>Operational baseline</td>
+          </tr>
+          <tr>
+            <td>Option B (full optimise)</td><td>11</td><td><strong>79.9%</strong></td><td><strong>97.9%</strong></td><td>86.9%</td>
+            <td>Requires relocating all 11 docks</td>
+          </tr>
+          <tr class="highlight">
+            <td>Option C (fixed 6 + best 5)</td><td>11</td><td>77.5%</td><td>97.8%</td><td><strong>89.4%</strong></td>
+            <td>Recommended — no disruption to existing ops</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 5. Dock Configuration Results -->
+    <div class="meth-section">
+      <h2>5. Option C — Station Details</h2>
+      <table class="data-table">
+        <thead>
+          <tr><th>#</th><th>Station</th><th>Neighbourhood</th><th>Role</th></tr>
+        </thead>
+        <tbody>
+          <tr style="background:#EAF0FF"><td>1</td><td>FS01</td><td>Boyle Street / McCauley</td><td>Fixed (existing)</td></tr>
+          <tr style="background:#EAF0FF"><td>2</td><td>FS03</td><td>Garneau</td><td>Fixed (existing)</td></tr>
+          <tr style="background:#EAF0FF"><td>3</td><td>FS13</td><td>Royal Gardens</td><td>Fixed (existing)</td></tr>
+          <tr style="background:#EAF0FF"><td>4</td><td>FS18</td><td>Kilkenny</td><td>Fixed (existing)</td></tr>
+          <tr style="background:#EAF0FF"><td>5</td><td>FS21</td><td>Meadowlark Park</td><td>Fixed (existing)</td></tr>
+          <tr style="background:#EAF0FF"><td>6</td><td>FS31</td><td>Southeast Industrial</td><td>Fixed (existing)</td></tr>
+          <tr style="background:#E8F4E8"><td>7</td><td>FS23</td><td>Brintnell / Crystallina</td><td>Greedy optimised</td></tr>
+          <tr style="background:#E8F4E8"><td>8</td><td>FS16</td><td>Roper / South Clareview</td><td>Greedy optimised</td></tr>
+          <tr style="background:#E8F4E8"><td>9</td><td>FS17</td><td>Beaumaris</td><td>Greedy optimised</td></tr>
+          <tr style="background:#E8F4E8"><td>10</td><td>FS07</td><td>Highlands</td><td>Greedy optimised</td></tr>
+          <tr style="background:#E8F4E8"><td>11</td><td>FS08</td><td>Westmount / Glenora</td><td>Greedy optimised</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 6. Camera Placement -->
+    <div class="meth-section">
+      <h2>6. PTZ Camera Station Methodology</h2>
+      <p>IQ FireWatch panoramic cameras are proposed at eight elevated sites around the river valley and ravine system. Each station provides 360° optical-NIR-SWIR coverage (400–1,100 nm) with a 15–20 km reliable detection radius. Cameras complete a full panorama in under 6 minutes and are AI-assisted for smoke discrimination against cloud, haze, and dust clutter. Units are rated to −45 °C — suitable for Edmonton winters.</p>
+      <p>Site selection prioritises: (1) line-of-sight to the highest WF incident density polygons, (2) existing elevated infrastructure (cell towers, hydro transmission structures, rooftops), and (3) complementary overlapping coverage to eliminate ravine shadows.</p>
+      <table class="data-table">
+        <thead>
+          <tr><th>#</th><th>Site</th><th>Mount</th><th>Coverage</th><th>Primary Corridor</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>Walterdale Hill</td><td>Telecom tower</td><td>20 km</td><td>Downtown valley · Rossdale flats</td></tr>
+          <tr><td>2</td><td>Mill Creek Ravine Rim</td><td>Utility pole / park structure</td><td>15 km</td><td>Mill Creek · Whitemud confluence</td></tr>
+          <tr><td>3</td><td>Whitemud Drive Ridge</td><td>Hydro transmission tower</td><td>18 km</td><td>Whitemud Creek full length</td></tr>
+          <tr><td>4</td><td>Terwillegar Ridge</td><td>Park service / telecom</td><td>15 km</td><td>SW ravines · Terwillegar · Oleskiw</td></tr>
+          <tr><td>5</td><td>Gold Bar / Beverly Rim</td><td>Cell tower</td><td>18 km</td><td>East valley · Rundle Park ravines</td></tr>
+          <tr><td>6</td><td>Strathearn Heights</td><td>Building rooftop / hydro tower</td><td>15 km</td><td>Downtown valley east approach</td></tr>
+          <tr><td>7</td><td>St. Albert Trail NW</td><td>Telecom mast</td><td>20 km</td><td>River valley NW · Big Island approach</td></tr>
+          <tr><td>8</td><td>Victoria Trail NE</td><td>Cell tower</td><td>18 km</td><td>Beverly ravines · north valley</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 7. Sensor Placement -->
+    <div class="meth-section">
+      <h2>7. Gas / Particulate Sensor Network</h2>
+      <h3>Detection Physics</h3>
+      <p>Wildland fire smoke generates a characteristic CO + PM2.5 co-spike before visible smoke plumes rise above the ravine rim. Installing sensors at ravine floor level captures this early chemical signature — typically 3–8 minutes before PTZ cameras can visually confirm a smoke column from above. Floor sensors trigger an alert; rim sensors cross-validate and provide gradient data to estimate fire intensity and movement direction.</p>
+
+      <h3>Platform: N5 Sensor Node</h3>
+      <p>The N5 multi-gas sensor (validated under DHS S&amp;T) detects CO, PM2.5, PM10, CO2, O3, temperature, and relative humidity simultaneously. LoRaWAN mesh radios relay data to gateways co-located at fire stations, maintaining &lt;5 min alert latency even without cellular coverage in ravine bottoms. Solar panels with LiFePO4 batteries provide year-round power; the LiFePO4 chemistry retains &gt;85% capacity at −40 °C — suitable for Alberta winters.</p>
+
+      <h3>Corridor Coverage</h3>
+      <table class="data-table">
+        <thead>
+          <tr><th>Corridor</th><th>Floor Nodes</th><th>Rim Nodes</th><th>Total</th><th>Primary Hazard</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Mill Creek Ravine</td><td>6</td><td>6</td><td>12</td><td>Interface fire, crown fire spread</td></tr>
+          <tr><td>Whitemud Creek</td><td>8</td><td>8</td><td>16</td><td>Longest contiguous fuel corridor</td></tr>
+          <tr><td>North Saskatchewan Main Valley</td><td>9</td><td>9</td><td>18</td><td>Highest WF incident density</td></tr>
+          <tr><td>Beverly Ravines</td><td>4</td><td>4</td><td>8</td><td>NE corridor, urban interface</td></tr>
+          <tr><td>Terwillegar / Oleskiw</td><td>4</td><td>4</td><td>8</td><td>SW mature forest fuel accumulation</td></tr>
+          <tr style="font-weight:600;background:#f0f4ff"><td>Total</td><td>31</td><td>31</td><td>62</td><td>—</td></tr>
+        </tbody>
+      </table>
+      <div class="callout">
+        Node spacing is approximately 700 m (0.006° interpolation interval). The ~156 generated map points include additional interpolated nodes along the longer corridors. Exact node count will be refined during detailed site survey.
+      </div>
+    </div>
+
+    <!-- 8. Integration Architecture -->
+    <div class="meth-section">
+      <h2>8. Integration Architecture</h2>
+      <p>The three systems — gas/particulate sensors, PTZ cameras, and RPAS docks — form a layered detection-to-dispatch pipeline:</p>
+      <div class="flow-diagram">
+<pre>
+LAYER 1 — Chemical Detection (T+0 to T+5 min)
+  [Ravine floor sensors]  CO + PM2.5 threshold exceeded
+         │
+         ▼  LoRaWAN mesh → Fire station gateway → EFRS SCADA
+  Alert generated: candidate fire location, intensity estimate
+
+LAYER 2 — Visual Confirmation (T+2 to T+8 min)
+  [PTZ cameras]  AI smoke discrimination → operator verify
+         │
+         ▼  Ethernet / LTE → FireWatch cloud → EFRS ECC
+  Smoke confirmed: bearing, spread direction, size class
+
+LAYER 3 — RPAS Dispatch (T+3 to T+12 min, dock-dependent)
+  [Nearest dock within T1/T2 zone]
+         │
+         ▼  DJI FlightHub 2 → autonomous dock launch
+  M4TD on-scene: thermal + RGB livestream to EFRS ECC
+  Ground units re-routed or pre-positioned based on aerial SA
+
+LAYER 4 — ICS Integration
+  Drone feed into EOC via ATAK / WebEOC
+  Incident Action Plan updated with aerial intel
+  Chief of Plans briefs Air Branch Director
+</pre>
+      </div>
+    </div>
+
+    <!-- 9. Placement Reports -->
+    <div class="meth-section">
+      <h2>9. Placement Reports &amp; References</h2>
+      <p>Full analysis code, reports, and supporting data are available through the links below.</p>
+      <div class="report-links">
+
+        <a class="report-card" href="https://git.edmonton.ca/opm-operation-performance-and-analytics/rpas-dock-analysis" target="_blank" rel="noopener">
+          <div class="report-card-icon">&#128196;</div>
+          <div class="report-card-title">Analysis Code — GitLab</div>
+          <div class="report-card-desc">Full Python analysis pipeline: demand weighting, greedy set-cover, GeoPackage generation, PDF and Word report builders.</div>
+          <div class="report-card-tag">City of Edmonton GitLab (internal)</div>
+        </a>
+
+        <a class="report-card" href="https://git.edmonton.ca/opm-operation-performance-and-analytics/rpas-dock-analysis-map" target="_blank" rel="noopener">
+          <div class="report-card-icon">&#127758;</div>
+          <div class="report-card-title">Map Site Code — GitLab</div>
+          <div class="report-card-desc">Source for this GitHub Pages site: GeoJSON generation script, index.html, methodology.html.</div>
+          <div class="report-card-tag">City of Edmonton GitLab (internal)</div>
+        </a>
+
+        <a class="report-card" href="https://www.iq-firewatch.com/technology" target="_blank" rel="noopener">
+          <div class="report-card-icon">&#128247;</div>
+          <div class="report-card-title">IQ FireWatch Technology</div>
+          <div class="report-card-desc">Panoramic PTZ camera system: 400–1,100 nm spectral range, −45 °C operation, 15–20 km detection radius, AI smoke discrimination.</div>
+          <div class="report-card-tag">iq-firewatch.com</div>
+        </a>
+
+        <a class="report-card" href="https://n5sensors.com/wildfire-monitoring/" target="_blank" rel="noopener">
+          <div class="report-card-icon">&#128200;</div>
+          <div class="report-card-title">N5 Sensors — Wildfire</div>
+          <div class="report-card-desc">DHS S&amp;T validated multi-gas platform: CO, PM2.5, PM10, CO2, O3, T, RH. LoRaWAN mesh backbone, solar + LiFePO4.</div>
+          <div class="report-card-tag">n5sensors.com</div>
+        </a>
+
+        <a class="report-card" href="https://www.dryad.net/" target="_blank" rel="noopener">
+          <div class="report-card-icon">&#127807;</div>
+          <div class="report-card-title">Dryad Silvanet</div>
+          <div class="report-card-desc">Alternative LoRaWAN forest sensor mesh. Note: supercapacitor cold-weather performance requires validation for Alberta −40 °C conditions.</div>
+          <div class="report-card-tag">dryad.net</div>
+        </a>
+
+        <a class="report-card" href="https://www.pano.ai/solution" target="_blank" rel="noopener">
+          <div class="report-card-icon">&#127756;</div>
+          <div class="report-card-title">Pano AI</div>
+          <div class="report-card-desc">AI-powered panoramic wildfire detection cameras. Alternative to IQ FireWatch; North American deployments across western states and BC.</div>
+          <div class="report-card-tag">pano.ai</div>
+        </a>
+
+        <a class="report-card" href="https://www.alertwildfire.org/" target="_blank" rel="noopener">
+          <div class="report-card-icon">&#128293;</div>
+          <div class="report-card-title">ALERTWildfire</div>
+          <div class="report-card-desc">University consortium camera network model. Public-facing live feeds, inter-agency data sharing architecture reference.</div>
+          <div class="report-card-tag">alertwildfire.org</div>
+        </a>
+
+      </div>
+    </div>
+
+    <div style="font-size:12px;color:#aaa;text-align:center;padding:24px 0 8px;border-top:1px solid #e0e4ed">
+      City of Edmonton · Urban Forestry &amp; Ecology · EFRS RPAS Program · Analysis v3.0 · April 2026<br>
+      Prepared by Travis Kennedy, P.Ag · General Supervisor, Urban Forestry and Ecology
+    </div>
+
+  </div><!-- /meth-body -->
+</div><!-- /meth-page -->
+
+</body>
+</html>
