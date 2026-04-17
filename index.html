@@ -517,7 +517,7 @@ map.on('load', () => {
   map.on('click', 'recreation', e => {
     const p = e.features[0].properties;
     const rows = [['Type', p.facility_type], ['Address', p.address || '—']];
-    if (p.url) rows.push(['Info', `<a href="${p.url}" target="_blank" style="color:#00838F">edmonton.ca ↗</a>`]);
+    if (p.info_url) rows.push(['Info', `<a href="${p.info_url}" target="_blank" style="color:#00838F">edmonton.ca ↗</a>`]);
     popup.setLngLat(e.lngLat).setHTML(fmtPopup(p.name, rows)).addTo(map);
   });
 

@@ -13,8 +13,8 @@
       "properties": {
         "name": "Queen Elizabeth Park",
         "address": "10380 Queen Elizabeth Park Road",
-        "url": "https://www.edmonton.ca/queenelizabethpark",
-        "facility_type": "River Valley Park"
+        "facility_type": "River Valley Park",
+        "info_url": "https://www.edmonton.ca/queenelizabethpark"
       }
     },
     {
@@ -29,8 +29,8 @@
       "properties": {
         "name": "Riverside Golf Course",
         "address": "8630 Rowland Road",
-        "url": "https://www.edmonton.ca/riversidegolf",
-        "facility_type": "Golf Course"
+        "facility_type": "Golf Course",
+        "info_url": "https://www.edmonton.ca/riversidegolf"
       }
     },
     {
@@ -45,8 +45,8 @@
       "properties": {
         "name": "Whitemud Park",
         "address": "13204 Fox Drive",
-        "url": "https://www.edmonton.ca/whitemudpark",
-        "facility_type": "River Valley Park"
+        "facility_type": "River Valley Park",
+        "info_url": "https://www.edmonton.ca/whitemudpark"
       }
     },
     {
@@ -61,8 +61,8 @@
       "properties": {
         "name": "Capilano Park",
         "address": "109 A Avenue 50 Street",
-        "url": "https://www.edmonton.ca/capilanopark",
-        "facility_type": "River Valley Park"
+        "facility_type": "River Valley Park",
+        "info_url": "https://www.edmonton.ca/capilanopark"
       }
     },
     {
@@ -77,8 +77,8 @@
       "properties": {
         "name": "Mill Woods Park",
         "address": "23 Avenue and 66 Street",
-        "url": "https://www.edmonton.ca/snowshoeing",
-        "facility_type": "Snowshoeing"
+        "facility_type": "Snowshoeing",
+        "info_url": "https://www.edmonton.ca/snowshoeing"
       }
     },
     {
@@ -93,8 +93,8 @@
       "properties": {
         "name": "Hermitage Park",
         "address": "2115 Hermitage Road",
-        "url": "https://www.edmonton.ca/hermitagepark",
-        "facility_type": "River Valley Park"
+        "facility_type": "River Valley Park",
+        "info_url": "https://www.edmonton.ca/hermitagepark"
       }
     },
     {
@@ -109,8 +109,8 @@
       "properties": {
         "name": "Rundle Park",
         "address": "2909 113 Avenue",
-        "url": "https://www.edmonton.ca/rundlepark",
-        "facility_type": "River Valley Park"
+        "facility_type": "River Valley Park",
+        "info_url": "https://www.edmonton.ca/rundlepark"
       }
     },
     {
@@ -125,8 +125,8 @@
       "properties": {
         "name": "Kinsmen Park",
         "address": "9100 Walterdale Hill",
-        "url": "https://www.edmonton.ca/kinsmenpark",
-        "facility_type": "River Valley Park"
+        "facility_type": "River Valley Park",
+        "info_url": "https://www.edmonton.ca/kinsmenpark"
       }
     },
     {
@@ -141,8 +141,8 @@
       "properties": {
         "name": "Victoria Park",
         "address": "12030 River Valley Road",
-        "url": "https://www.edmonton.ca/victoriapark",
-        "facility_type": "River Valley Park"
+        "facility_type": "River Valley Park",
+        "info_url": "https://www.edmonton.ca/victoriapark"
       }
     },
     {
@@ -157,8 +157,8 @@
       "properties": {
         "name": "Buena Vista Park",
         "address": "13210 Buena Vista Road",
-        "url": "https://www.edmonton.ca/buenavistapark",
-        "facility_type": "River Valley Park"
+        "facility_type": "River Valley Park",
+        "info_url": "https://www.edmonton.ca/buenavistapark"
       }
     },
     {
@@ -173,8 +173,8 @@
       "properties": {
         "name": "Jan Reimer Park",
         "address": "Between Terwillegar Park and Fort Edmonton Park",
-        "url": "https://www.edmonton.ca/janreimerpark",
-        "facility_type": "River Valley Park"
+        "facility_type": "River Valley Park",
+        "info_url": "https://www.edmonton.ca/janreimerpark"
       }
     },
     {
@@ -189,8 +189,8 @@
       "properties": {
         "name": "John Janzen Nature Centre",
         "address": "7000 143 Street",
-        "url": "https://www.edmonton.ca/snowshoeing",
-        "facility_type": "Snowshoeing"
+        "facility_type": "Snowshoeing",
+        "info_url": "https://www.edmonton.ca/snowshoeing"
       }
     },
     {
@@ -205,8 +205,8 @@
       "properties": {
         "name": "Victoria Golf Course and Driving Range",
         "address": "12130 River Valley Road",
-        "url": "https://www.edmonton.ca/victoriagolf",
-        "facility_type": "Golf Course"
+        "facility_type": "Golf Course",
+        "info_url": "https://www.edmonton.ca/victoriagolf"
       }
     },
     {
@@ -221,8 +221,8 @@
       "properties": {
         "name": "Louise McKinney Park",
         "address": "9999 Grierson Hill Road",
-        "url": "https://www.edmonton.ca/louisemckinneypark",
-        "facility_type": "River Valley Park"
+        "facility_type": "River Valley Park",
+        "info_url": "https://www.edmonton.ca/louisemckinneypark"
       }
     },
     {
@@ -237,8 +237,8 @@
       "properties": {
         "name": "Gallagher Park",
         "address": "9505 96 Avenue",
-        "url": "https://www.edmonton.ca/gallagherpark",
-        "facility_type": "River Valley Park"
+        "facility_type": "River Valley Park",
+        "info_url": "https://www.edmonton.ca/gallagherpark"
       }
     },
     {
@@ -253,8 +253,8 @@
       "properties": {
         "name": "Terwillegar Park",
         "address": "10 Rabbit Hill Road",
-        "url": "https://www.edmonton.ca/terwillegarpark",
-        "facility_type": "River Valley Park"
+        "facility_type": "River Valley Park",
+        "info_url": "https://www.edmonton.ca/terwillegarpark"
       }
     },
     {
@@ -269,8 +269,8 @@
       "properties": {
         "name": "Emily Murphy Park",
         "address": "11904 Emily Murphy Park Road",
-        "url": "https://www.edmonton.ca/emilymurphypark",
-        "facility_type": "River Valley Park"
+        "facility_type": "River Valley Park",
+        "info_url": "https://www.edmonton.ca/emilymurphypark"
       }
     },
     {
@@ -285,8 +285,8 @@
       "properties": {
         "name": "Northeast River Valley Park",
         "address": "903 153 Avenue NE",
-        "url": "https://www.edmonton.ca/nerivervalleypark",
-        "facility_type": "River Valley Park"
+        "facility_type": "River Valley Park",
+        "info_url": "https://www.edmonton.ca/nerivervalleypark"
       }
     },
     {
@@ -301,8 +301,8 @@
       "properties": {
         "name": "Rundle Park Golf Course",
         "address": "2902 118 Avenue",
-        "url": "https://www.edmonton.ca/rundlegolf",
-        "facility_type": "Golf Course"
+        "facility_type": "Golf Course",
+        "info_url": "https://www.edmonton.ca/rundlegolf"
       }
     },
     {
@@ -317,8 +317,8 @@
       "properties": {
         "name": "Mill Creek Ravine Park",
         "address": "96 Street and 76 Avenue",
-        "url": "https://www.edmonton.ca/millcreekravine",
-        "facility_type": "River Valley Park"
+        "facility_type": "River Valley Park",
+        "info_url": "https://www.edmonton.ca/millcreekravine"
       }
     },
     {
@@ -333,8 +333,8 @@
       "properties": {
         "name": "Fort Edmonton Park",
         "address": "7000 143 Street",
-        "url": "https://www.edmonton.ca/snowshoeing",
-        "facility_type": "Snowshoeing"
+        "facility_type": "Snowshoeing",
+        "info_url": "https://www.edmonton.ca/snowshoeing"
       }
     },
     {
@@ -349,8 +349,8 @@
       "properties": {
         "name": "Gold Bar Park",
         "address": "10955 50 Street",
-        "url": "https://www.edmonton.ca/goldbarpark",
-        "facility_type": "River Valley Park"
+        "facility_type": "River Valley Park",
+        "info_url": "https://www.edmonton.ca/goldbarpark"
       }
     },
     {
@@ -365,8 +365,8 @@
       "properties": {
         "name": "Rundle Park",
         "address": "2913 113 Avenue",
-        "url": "https://www.edmonton.ca/snowshoeing",
-        "facility_type": "Snowshoeing"
+        "facility_type": "Snowshoeing",
+        "info_url": "https://www.edmonton.ca/snowshoeing"
       }
     },
     {
@@ -381,8 +381,8 @@
       "properties": {
         "name": "Dawson Park",
         "address": "10298 89 Street",
-        "url": "https://www.edmonton.ca/dawsonpark",
-        "facility_type": "River Valley Park"
+        "facility_type": "River Valley Park",
+        "info_url": "https://www.edmonton.ca/dawsonpark"
       }
     },
     {
@@ -397,8 +397,8 @@
       "properties": {
         "name": "William Hawrelak Park",
         "address": "9330 Groat Road",
-        "url": "https://www.edmonton.ca/hawrelakpark",
-        "facility_type": "River Valley Park"
+        "facility_type": "River Valley Park",
+        "info_url": "https://www.edmonton.ca/hawrelakpark"
       }
     },
     {
@@ -413,8 +413,8 @@
       "properties": {
         "name": "Sir Wilfrid Laurier Park",
         "address": "13221 Buena Vista Road",
-        "url": "https://www.edmonton.ca//wilfridlaurierpark",
-        "facility_type": "River Valley Park"
+        "facility_type": "River Valley Park",
+        "info_url": "https://www.edmonton.ca//wilfridlaurierpark"
       }
     },
     {
@@ -429,8 +429,8 @@
       "properties": {
         "name": "Government House Park",
         "address": "9938 Groat Road",
-        "url": "https://www.edmonton.ca/governmenthousepark",
-        "facility_type": "River Valley Park"
+        "facility_type": "River Valley Park",
+        "info_url": "https://www.edmonton.ca/governmenthousepark"
       }
     }
   ]
