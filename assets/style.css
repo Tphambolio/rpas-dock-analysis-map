@@ -4,7 +4,7 @@
   --coe-gold:  #F5A800;
   --coe-light: #E8EFFA;
   --text:      #1a1a1a;
-  --sidebar-w: 280px;
+  --sidebar-w: 300px;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -128,7 +128,7 @@ body {
 .toggle-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   padding: 5px 0;
   cursor: pointer;
   user-select: none;
@@ -145,6 +145,10 @@ body {
   font-size: 13px;
   cursor: pointer;
   flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .toggle-swatch {
