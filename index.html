@@ -8,18 +8,10 @@
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css">
   <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
   <style>
-    .feat-count {
-      font-size: 10px;
-      color: rgba(255,255,255,0.5);
-      background: rgba(0,0,0,0.25);
-      border-radius: 8px;
-      padding: 1px 6px;
-      margin-left: auto;
-    }
     .dl-btn {
       background: none; border: none; cursor: pointer;
       color: rgba(255,255,255,0.6); font-size: 14px;
-      padding: 0 2px 0 5px; margin-left: 2px; line-height:1;
+      padding: 0 2px; margin-left: auto; line-height:1;
       transition: color 0.15s; flex-shrink: 0;
     }
     .dl-btn:hover { color: #F5A800; }
@@ -69,7 +61,7 @@
         <input type="checkbox" id="tog-wf" checked>
         <div class="toggle-swatch" style="background:linear-gradient(135deg,#ffe000,#ff6600,#cc0000)"></div>
         <label for="tog-wf">Wildland Fire Incidents</label>
-        <span class="feat-count">1,110</span>
+        
         <button class="dl-btn" onclick="downloadKML('wf_incidents','data/wf_incidents.geojson')" title="Download as KML">⬇</button>
       </div>
     </div>
@@ -80,14 +72,12 @@
         <input type="checkbox" id="tog-ex6" checked>
         <div class="toggle-swatch" style="background:#1A237E"></div>
         <label for="tog-ex6">Existing Dock Network (6)</label>
-        <span class="feat-count">6</span>
         <button class="dl-btn" onclick="downloadKML('existing_docks','data/existing6_stations.geojson')" title="Download as KML">⬇</button>
       </div>
       <div class="toggle-row">
         <input type="checkbox" id="tog-optc">
         <div class="toggle-swatch" style="background:#006600"></div>
         <label for="tog-optc">Option C — Fixed 6 + Best 5</label>
-        <span class="feat-count">11</span>
         <button class="dl-btn" onclick="downloadKML('optionC_docks','data/optC_stations.geojson')" title="Download as KML">⬇</button>
       </div>
     </div>
@@ -98,14 +88,12 @@
         <input type="checkbox" id="tog-cam" checked>
         <div class="toggle-swatch circle" style="background:#F5A800"></div>
         <label for="tog-cam">PTZ Camera Stations</label>
-        <span class="feat-count">8</span>
         <button class="dl-btn" onclick="downloadKML('ptz_camera_stations','data/cameras.geojson')" title="Download as KML">⬇</button>
       </div>
       <div class="toggle-row">
         <input type="checkbox" id="tog-vs" checked>
         <div class="toggle-swatch" style="background:rgba(245,168,0,0.25);border:1.5px dashed #F5A800;border-radius:2px"></div>
         <label for="tog-vs">Camera View Cones (60°) ▾</label>
-        <span class="feat-count">8</span>
         <button class="dl-btn" onclick="downloadKML('camera_viewsheds','data/camera_viewsheds.geojson')" title="Download as KML">⬇</button>
       </div>
       <div id="vs-per-cam" style="padding-left:18px;display:block">
@@ -115,7 +103,6 @@
         <input type="checkbox" id="tog-sen" checked>
         <div class="toggle-swatch circle" style="background:#E65100"></div>
         <label for="tog-sen">Gas / Particulate Sensors</label>
-        <span class="feat-count">84</span>
         <button class="dl-btn" onclick="downloadKML('sensor_nodes','data/sensors.geojson')" title="Download as KML">⬇</button>
       </div>
     </div>
