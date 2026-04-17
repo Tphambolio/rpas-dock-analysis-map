@@ -423,7 +423,14 @@ map.on('load', () => {
   });
 
   // 9. River Valley Recreation
-  map.addSource('rec-src', { type: 'geojson', data: 'data/recreation.geojson' });
+  const recUrl = 'data/recreation.geojson?v=' + Date.now();
+  map.addSource('rec-src', { type: 'geojson', data: recUrl });
+  map.on('sourcedata', e => {
+    if (e.sourceId === 'rec-src' && e.isSourceLoaded) {
+      const feats = map.querySourceFeatures('rec-src');
+      console.log('REC loaded — querySourceFeatures:', feats.length, '| source type:', typeof map.getSource('rec-src')._data);
+    }
+  });
   safeAdd({ id: 'recreation', type: 'circle', source: 'rec-src',
     paint: {
       'circle-radius': 8,
