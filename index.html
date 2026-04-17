@@ -392,7 +392,7 @@ map.on('load', () => {
     paint: { 'text-color': '#5a3800', 'text-halo-color': '#fff', 'text-halo-width': 2 }
   });
 
-  // 9. River Valley Recreation — data inlined at build time, added synchronously
+  // 9. River Valley Recreation
   map.addSource('rec-src', { type: 'geojson', data: 'data/recreation.geojson' });
   safeAdd({ id: 'recreation', type: 'circle', source: 'rec-src',
     paint: {
@@ -486,7 +486,7 @@ map.on('load', () => {
 
   map.on('click', 'recreation', e => {
     const p = e.features[0].properties;
-    const rows = [['Type', p.type], ['Address', p.address || '—']];
+    const rows = [['Type', p.facility_type], ['Address', p.address || '—']];
     if (p.url) rows.push(['Info', `<a href="${p.url}" target="_blank" style="color:#00838F">edmonton.ca ↗</a>`]);
     popup.setLngLat(e.lngLat).setHTML(fmtPopup(p.name, rows)).addTo(map);
   });
