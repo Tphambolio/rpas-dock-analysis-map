@@ -16,6 +16,25 @@
       padding: 1px 6px;
       margin-left: auto;
     }
+    .dl-btn {
+      background: none; border: none; cursor: pointer;
+      color: rgba(255,255,255,0.45); font-size: 13px;
+      padding: 0 2px 0 5px; margin-left: 2px; line-height:1;
+      transition: color 0.15s;
+    }
+    .dl-btn:hover { color: #F5A800; }
+    #sidebar-controls {
+      display: flex; gap: 6px; padding: 4px 0 2px;
+    }
+    #sidebar-controls button {
+      flex: 1; font-size: 11px; cursor: pointer;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.75);
+      border-radius: 4px; padding: 3px 6px;
+      transition: background 0.15s;
+    }
+    #sidebar-controls button:hover { background: rgba(255,255,255,0.18); }
   </style>
 </head>
 <body>
@@ -37,6 +56,10 @@
   <div id="sidebar-header">
     <h2>Layer Controls</h2>
     <p>Click features for details</p>
+    <div id="sidebar-controls">
+      <button onclick="clearAllLayers()">Deselect all</button>
+      <button onclick="resetLayers()">Reset defaults</button>
+    </div>
   </div>
   <div id="sidebar-body">
 
@@ -47,6 +70,7 @@
         <div class="toggle-swatch" style="background:linear-gradient(135deg,#ffe000,#ff6600,#cc0000)"></div>
         <label for="tog-wf">Wildland Fire Incidents</label>
         <span class="feat-count">1,110</span>
+        <button class="dl-btn" onclick="downloadLayerKML('wf_incidents','wf')" title="Download as KML">⬇</button>
       </div>
     </div>
 
@@ -57,12 +81,14 @@
         <div class="toggle-swatch" style="background:#1A237E"></div>
         <label for="tog-ex6">Existing Dock Network (6)</label>
         <span class="feat-count">6</span>
+        <button class="dl-btn" onclick="downloadLayerKML('existing_docks','ex6-stations')" title="Download as KML">⬇</button>
       </div>
       <div class="toggle-row">
         <input type="checkbox" id="tog-optc">
         <div class="toggle-swatch" style="background:#006600"></div>
         <label for="tog-optc">Option C — Fixed 6 + Best 5</label>
         <span class="feat-count">11</span>
+        <button class="dl-btn" onclick="downloadLayerKML('optionC_docks','optc-stations')" title="Download as KML">⬇</button>
       </div>
     </div>
 
@@ -73,12 +99,14 @@
         <div class="toggle-swatch circle" style="background:#F5A800"></div>
         <label for="tog-cam">PTZ Camera Stations</label>
         <span class="feat-count">8</span>
+        <button class="dl-btn" onclick="downloadLayerKML('ptz_camera_stations','ptz-cams')" title="Download as KML">⬇</button>
       </div>
       <div class="toggle-row">
         <input type="checkbox" id="tog-vs" checked>
         <div class="toggle-swatch" style="background:rgba(245,168,0,0.25);border:1.5px dashed #F5A800;border-radius:2px"></div>
         <label for="tog-vs">Camera View Cones (60°) ▾</label>
         <span class="feat-count">8</span>
+        <button class="dl-btn" onclick="downloadLayerKML('camera_viewsheds','cam-viewsheds')" title="Download as KML">⬇</button>
       </div>
       <div id="vs-per-cam" style="padding-left:18px;display:block">
         <!-- Individual viewshed checkboxes injected by JS after geojson loads -->
@@ -88,6 +116,7 @@
         <div class="toggle-swatch circle" style="background:#E65100"></div>
         <label for="tog-sen">Gas / Particulate Sensors</label>
         <span class="feat-count">84</span>
+        <button class="dl-btn" onclick="downloadLayerKML('sensor_nodes','sensors')" title="Download as KML">⬇</button>
       </div>
     </div>
 
@@ -98,6 +127,7 @@
         <div class="toggle-swatch circle" style="background:#00838F"></div>
         <label for="tog-rec">Parks &amp; Facilities</label>
         <span class="feat-count">27</span>
+        <button class="dl-btn" onclick="downloadLayerKML('river_valley_recreation','rec-src')" title="Download as KML">⬇</button>
       </div>
     </div>
 
@@ -498,6 +528,85 @@ map.on('load', () => {
   });
 
 }); // end map.on('load')
+
+// ─── KML Export ──────────────────────────────────────────────────────────────
+function escXML(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function geomToKML(geom) {
+  if (!geom) return '';
+  if (geom.type === 'Point') {
+    return `<Point><coordinates>${geom.coordinates[0]},${geom.coordinates[1]},0</coordinates></Point>`;
+  }
+  if (geom.type === 'Polygon') {
+    const coords = geom.coordinates[0].map(c => `${c[0]},${c[1]},0`).join(' ');
+    return `<Polygon><outerBoundaryIs><LinearRing><coordinates>${coords}</coordinates></LinearRing></outerBoundaryIs></Polygon>`;
+  }
+  if (geom.type === 'MultiPolygon') {
+    return `<MultiGeometry>${geom.coordinates.map(poly => {
+      const coords = poly[0].map(c => `${c[0]},${c[1]},0`).join(' ');
+      return `<Polygon><outerBoundaryIs><LinearRing><coordinates>${coords}</coordinates></LinearRing></outerBoundaryIs></Polygon>`;
+    }).join('')}</MultiGeometry>`;
+  }
+  return '';
+}
+
+function geojsonToKML(title, geojson) {
+  const places = geojson.features.map(f => {
+    const p = f.properties || {};
+    const name = p.name || p.station_id || p.id || title;
+    const desc = Object.entries(p).map(([k,v]) => `${escXML(k)}: ${escXML(v)}`).join('\n');
+    return `  <Placemark>\n    <name>${escXML(name)}</name>\n    <description><![CDATA[${desc}]]></description>\n    ${geomToKML(f.geometry)}\n  </Placemark>`;
+  }).join('\n');
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n<Document>\n  <name>${escXML(title)}</name>\n${places}\n</Document>\n</kml>`;
+}
+
+async function downloadLayerKML(filename, sourceId) {
+  const src = map.getSource(sourceId);
+  if (!src) return;
+  let geojson;
+  const data = src._data;
+  if (typeof data === 'string') {
+    const r = await fetch(data);
+    geojson = await r.json();
+  } else {
+    geojson = data;
+  }
+  const kml = geojsonToKML(filename.replace(/_/g,' '), geojson);
+  const blob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename + '.kml'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ─── Deselect All / Reset ────────────────────────────────────────────────────
+const DEFAULT_CHECKED = {
+  'tog-wf': true, 'tog-ex6': true, 'tog-optc': false,
+  'tog-cam': true, 'tog-vs': true, 'tog-sen': true, 'tog-rec': true
+};
+
+function clearAllLayers() {
+  Object.keys(DEFAULT_CHECKED).forEach(id => {
+    const cb = document.getElementById(id);
+    if (cb && cb.checked) { cb.checked = false; cb.dispatchEvent(new Event('change')); }
+  });
+  document.querySelectorAll('#vs-per-cam input[type=checkbox]').forEach(cb => {
+    if (cb.checked) { cb.checked = false; cb.dispatchEvent(new Event('change')); }
+  });
+}
+
+function resetLayers() {
+  Object.entries(DEFAULT_CHECKED).forEach(([id, def]) => {
+    const cb = document.getElementById(id);
+    if (cb && cb.checked !== def) { cb.checked = def; cb.dispatchEvent(new Event('change')); }
+  });
+  document.querySelectorAll('#vs-per-cam input[type=checkbox]').forEach(cb => {
+    if (!cb.checked) { cb.checked = true; cb.dispatchEvent(new Event('change')); }
+  });
+}
 </script>
 </body>
 </html>
