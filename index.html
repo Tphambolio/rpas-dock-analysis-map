@@ -164,6 +164,9 @@
 <div id="map"></div>
 
 <script>
+// ─── Inline recreation data (27 river valley parks/facilities) ────────────────
+const REC_DATA = {"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[-113.49823495715177,53.52456738520644]},"properties":{"name":"Queen Elizabeth Park","type":"River Valley Park","address":"10380 Queen Elizabeth Park Road","url":"https://www.edmonton.ca/queenelizabethpark"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-113.46511314365989,53.54962171173935]},"properties":{"name":"Riverside Golf Course","type":"Golf Course","address":"8630 Rowland Road","url":"https://www.edmonton.ca/riversidegolf"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-113.55525001482515,53.50344954243004]},"properties":{"name":"Whitemud Park","type":"River Valley Park","address":"13204 Fox Drive","url":"https://www.edmonton.ca/whitemudpark"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-113.41862490133224,53.55862599288395]},"properties":{"name":"Capilano Park","type":"River Valley Park","address":"109 A Avenue 50 Street","url":"https://www.edmonton.ca/capilanopark"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-113.44092194551718,53.45545596089844]},"properties":{"name":"Mill Woods Park","type":"Snowshoeing","address":"23 Avenue and 66 Street","url":"https://www.edmonton.ca/snowshoeing"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-113.37436550318535,53.59167773528726]},"properties":{"name":"Hermitage Park","type":"River Valley Park","address":"2115 Hermitage Road","url":"https://www.edmonton.ca/hermitagepark"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-113.38663822831442,53.5561055797469]},"properties":{"name":"Rundle Park","type":"River Valley Park","address":"2909 113 Avenue","url":"https://www.edmonton.ca/rundlepark"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-113.50854873004546,53.52993972781832]},"properties":{"name":"Kinsmen Park","type":"River Valley Park","address":"9100 Walterdale Hill","url":"https://www.edmonton.ca/kinsmenpark"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-113.52332751667824,53.53430234834027]},"properties":{"name":"Victoria Park","type":"River Valley Park","address":"12030 River Valley Road","url":"https://www.edmonton.ca/victoriapark"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-113.54790056086044,53.51521049263654]},"properties":{"name":"Buena Vista Park","type":"River Valley Park","address":"13210 Buena Vista Road","url":"https://www.edmonton.ca/buenavistapark"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-113.59687183117059,53.48646578854037]},"properties":{"name":"Jan Reimer Park","type":"River Valley Park","address":"Between Terwillegar Park and Fort Edmonton Park","url":"https://www.edmonton.ca/janreimerpark"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-113.5724357571524,53.5025404937963]},"properties":{"name":"John Janzen Nature Centre","type":"Snowshoeing","address":"7000 143 Street","url":"https://www.edmonton.ca/snowshoeing"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-113.52297151667824,53.53431655236446]},"properties":{"name":"Victoria Golf Course and Driving Range","type":"Golf Course","address":"12130 River Valley Road","url":"https://www.edmonton.ca/victoriagolf"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-113.48033722831488,53.54204638519308]},"properties":{"name":"Louise McKinney Park","type":"River Valley Park","address":"9999 Grierson Hill Road","url":"https://www.edmonton.ca/louisemckinneypark"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-113.47263975900557,53.53434939493022]},"properties":{"name":"Gallagher Park","type":"River Valley Park","address":"9505 96 Avenue","url":"https://www.edmonton.ca/gallagherpark"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-113.56975674551693,53.46425771004883]},"properties":{"name":"Terwillegar Park","type":"River Valley Park","address":"10 Rabbit Hill Road","url":"https://www.edmonton.ca/terwillegarpark"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-113.5371952455146,53.53358941418859]},"properties":{"name":"Emily Murphy Park","type":"River Valley Park","address":"11904 Emily Murphy Park Road","url":"https://www.edmonton.ca/emilymurphypark"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-113.33196586000047,53.61350633702917]},"properties":{"name":"Northeast River Valley Park","type":"River Valley Park","address":"903 153 Avenue NE","url":"https://www.edmonton.ca/nerivervalleypark"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-113.37865520318603,53.570194161517016]},"properties":{"name":"Rundle Park Golf Course","type":"Golf Course","address":"2902 118 Avenue","url":"https://www.edmonton.ca/rundlegolf"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-113.45929675715242,53.50477884941618]},"properties":{"name":"Mill Creek Ravine Park","type":"River Valley Park","address":"96 Street and 76 Avenue","url":"https://www.edmonton.ca/millcreekravine"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-113.57341311297084,53.503543604656926]},"properties":{"name":"Fort Edmonton Park","type":"Snowshoeing","address":"7000 143 Street","url":"https://www.edmonton.ca/snowshoeing"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-113.40730514057226,53.55808624037282]},"properties":{"name":"Gold Bar Park","type":"River Valley Park","address":"10955 50 Street","url":"https://www.edmonton.ca/goldbarpark"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-113.38831350133223,53.555087035098886]},"properties":{"name":"Rundle Park","type":"Snowshoeing","address":"2913 113 Avenue","url":"https://www.edmonton.ca/snowshoeing"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-113.47091760543188,53.55187678873575]},"properties":{"name":"Dawson Park","type":"River Valley Park","address":"10298 89 Street","url":"https://www.edmonton.ca/dawsonpark"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-113.54756731667847,53.52720844502184]},"properties":{"name":"William Hawrelak Park","type":"River Valley Park","address":"9330 Groat Road","url":"https://www.edmonton.ca/hawrelakpark"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-113.55066025900642,53.51002894566543]},"properties":{"name":"Sir Wilfrid Laurier Park","type":"River Valley Park","address":"13221 Buena Vista Road","url":"https://www.edmonton.ca//wilfridlaurierpark"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-113.54010066137126,53.53898614778614]},"properties":{"name":"Government House Park","type":"River Valley Park","address":"9938 Groat Road","url":"https://www.edmonton.ca/governmenthousepark"}}]};
+
 // ─── Map init ─────────────────────────────────────────────────────────────────
 const map = new maplibregl.Map({
   container: 'map',
@@ -391,45 +394,27 @@ map.on('load', () => {
     paint: { 'text-color': '#5a3800', 'text-halo-color': '#fff', 'text-halo-width': 2 }
   });
 
-  // 9. River Valley Recreation — inline fetch so data arrives as object (not URL)
-  //    Added after cameras so it renders on top and is always visible
-  fetch('data/recreation.geojson')
-    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-    .then(recData => {
-      map.addSource('rec-src', { type: 'geojson', data: recData });
-      const initVis = document.getElementById('tog-rec').checked ? 'visible' : 'none';
-      safeAdd({ id: 'recreation', type: 'circle', source: 'rec-src',
-        layout: { visibility: initVis },
-        paint: {
-          'circle-radius': 8,
-          'circle-color': '#00838F',
-          'circle-stroke-color': '#fff',
-          'circle-stroke-width': 2,
-          'circle-opacity': 1
-        }
-      });
-      safeAdd({ id: 'recreation-labels', type: 'symbol', source: 'rec-src',
-        layout: {
-          visibility: initVis,
-          'text-field': ['get', 'name'],
-          'text-font': ['Noto Sans Regular', 'Noto Sans Bold'],
-          'text-size': 10, 'text-anchor': 'top', 'text-offset': [0, 1.1],
-          'text-max-width': 12,
-          'text-optional': true
-        },
-        paint: { 'text-color': '#004d52', 'text-halo-color': '#fff', 'text-halo-width': 2 }
-      });
-      map.on('click', 'recreation', e => {
-        const p = e.features[0].properties;
-        const rows = [['Type', p.type], ['Address', p.address || '—']];
-        if (p.url) rows.push(['Info', `<a href="${p.url}" target="_blank" style="color:#00838F">edmonton.ca ↗</a>`]);
-        popup.setLngLat(e.lngLat).setHTML(fmtPopup(p.name, rows)).addTo(map);
-      });
-      map.on('mouseenter', 'recreation', () => { map.getCanvas().style.cursor = 'pointer'; });
-      map.on('mouseleave', 'recreation', () => { map.getCanvas().style.cursor = ''; });
-      console.log('[map] recreation loaded:', recData.features.length, 'features');
-    })
-    .catch(err => console.error('[map] recreation fetch failed:', err));
+  // 9. River Valley Recreation — data inlined at build time, added synchronously
+  map.addSource('rec-src', { type: 'geojson', data: REC_DATA });
+  safeAdd({ id: 'recreation', type: 'circle', source: 'rec-src',
+    paint: {
+      'circle-radius': 8,
+      'circle-color': '#00838F',
+      'circle-stroke-color': '#fff',
+      'circle-stroke-width': 2,
+      'circle-opacity': 1
+    }
+  });
+  safeAdd({ id: 'recreation-labels', type: 'symbol', source: 'rec-src',
+    layout: {
+      'text-field': ['get', 'name'],
+      'text-font': ['Noto Sans Regular', 'Noto Sans Bold'],
+      'text-size': 10, 'text-anchor': 'top', 'text-offset': [0, 1.1],
+      'text-max-width': 12,
+      'text-optional': true
+    },
+    paint: { 'text-color': '#004d52', 'text-halo-color': '#fff', 'text-halo-width': 2 }
+  });
 
   // ── Toggle bindings (simple layers) ─────────────────────────────────────────
   const togMap = {
@@ -501,7 +486,14 @@ map.on('load', () => {
     ])).addTo(map);
   });
 
-  const clickable = ['existing6-stations','optC-stations','cam-dot','sensors'];
+  map.on('click', 'recreation', e => {
+    const p = e.features[0].properties;
+    const rows = [['Type', p.type], ['Address', p.address || '—']];
+    if (p.url) rows.push(['Info', `<a href="${p.url}" target="_blank" style="color:#00838F">edmonton.ca ↗</a>`]);
+    popup.setLngLat(e.lngLat).setHTML(fmtPopup(p.name, rows)).addTo(map);
+  });
+
+  const clickable = ['existing6-stations','optC-stations','cam-dot','sensors','recreation'];
   clickable.forEach(lid => {
     map.on('mouseenter', lid, () => { map.getCanvas().style.cursor = 'pointer'; });
     map.on('mouseleave', lid, () => { map.getCanvas().style.cursor = ''; });
