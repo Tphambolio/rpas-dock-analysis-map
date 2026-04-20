@@ -270,11 +270,12 @@ map.on('load', () => {
   safeAdd({ id: 'optC-labels', type: 'symbol', source: 'optc-stations',
     layout: {
       visibility: 'none',
-      'text-field': ['coalesce', ['get', 'station_id'], ['get', 'name'], ''],
+      'text-field': ['get', 'label'],
       'text-font': ['Noto Sans Bold', 'Noto Sans Regular'],
-      'text-size': 10, 'text-anchor': 'top', 'text-offset': [0, 0.9]
+      'text-size': 11, 'text-anchor': 'top', 'text-offset': [0, 1.0],
+      'text-max-width': 12
     },
-    paint: { 'text-color': '#004400', 'text-halo-color': '#fff', 'text-halo-width': 1.5 }
+    paint: { 'text-color': '#1a1a1a', 'text-halo-color': '#fff', 'text-halo-width': 2 }
   });
 
   // 6. Camera viewsheds — per-camera fill/line layers
@@ -433,10 +434,10 @@ map.on('load', () => {
 
   map.on('click', 'optC-stations', e => {
     const p = e.features[0].properties;
-    popup.setLngLat(e.lngLat).setHTML(fmtPopup(p.station_id || 'Station', [
+    popup.setLngLat(e.lngLat).setHTML(fmtPopup(p.label || p.fs_id || 'Station', [
       ['Config', 'Option C'],
       ['Role', p.role === 'existing' ? 'Fixed (existing)' : 'Greedy optimised'],
-      ['Neighbourhood', p.neighbourhood || '—']
+      ['Station ID', p.fs_id || '—']
     ])).addTo(map);
   });
 
