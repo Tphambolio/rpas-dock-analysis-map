@@ -272,10 +272,12 @@ map.on('load', () => {
       visibility: 'none',
       'text-field': ['get', 'label'],
       'text-font': ['Noto Sans Bold', 'Noto Sans Regular'],
-      'text-size': 11, 'text-anchor': 'top', 'text-offset': [0, 1.0],
-      'text-max-width': 12
+      'text-size': 12, 'text-anchor': 'top', 'text-offset': [0, 1.0],
+      'text-max-width': 12,
+      'text-allow-overlap': true,
+      'text-ignore-placement': true
     },
-    paint: { 'text-color': '#1a1a1a', 'text-halo-color': '#fff', 'text-halo-width': 2 }
+    paint: { 'text-color': '#1a1a1a', 'text-halo-color': '#fff', 'text-halo-width': 2.5 }
   });
 
   // 6. Camera viewsheds — per-camera fill/line layers
